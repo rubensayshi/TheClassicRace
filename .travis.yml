@@ -1,0 +1,20 @@
+language: python
+sudo: false
+
+env:
+  - LUA="lua 5.3"
+
+before_install:
+  - pip install hererocks
+  - hererocks env --$LUA -rlatest
+  - source env/bin/activate
+  - luarocks install luacov-coveralls
+
+install:
+  - make setup-dev
+
+script:
+  - make lint tests
+
+after_success:
+  - luacov-coveralls --root ./ --include 'src/*'

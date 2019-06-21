@@ -1,0 +1,23 @@
+## Interface: 80100
+## Title: TheClassicRace
+## Author: Rubensayshi
+## Version: @project-version@
+## Notes: The Classic Race
+## DefaultState: Enabled
+## LoadOnDemand: 0
+## SavedVariables: TheClassicRace_DB
+
+libs.xml
+
+src\main.lua
+src\dev.lua
+src\config.lua
+src\defaultdb.lua
+src\util\util.lua
+src\util\list-helpers.lua
+src\util\table-helpers.lua
+src\util\chat.lua
+src\networking\network.lua
+src\core\event-bus.lua
+src\core\interaction-tracker.lua
+src\core\core.lua
