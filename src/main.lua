@@ -9,6 +9,7 @@ local LibStub = _G.LibStub
 ---@field Network TheClassicRaceNetwork
 ---@field EventBus TheClassicRaceEventBus
 ---@field Updater TheClassicRaceUpdater
+---@field Tracker TheClassicRaceTracker
 ---@field DefaultDB TheClassicRaceDefaultDB
 TheClassicRace = LibStub("AceAddon-3.0"):NewAddon("TheClassicRace", "AceConsole-3.0")
 
@@ -25,7 +26,8 @@ function TheClassicRace:OnInitialize()
     self.Core = TheClassicRace.Core(player, realm)
     self.EventBus = TheClassicRace.EventBus()
     self.Network = TheClassicRace.Network(self.Core, self.EventBus)
-    self.Updater = TheClassicRace.Updater(self.Core, self.DB, self.EventBus)
+    self.Updater = TheClassicRace.Updater(self.Core, self.DB, self.EventBus, who)
+    self.Tracker = TheClassicRace.Tracker(self.Core, self.DB, self.EventBus, self.Network)
 
     self:DebugPrint("me: " .. self.Core:RealMe())
 end
@@ -34,6 +36,10 @@ function TheClassicRace:OnEnable()
     -- debug print, will also help us know if debugging is enabled
     self:DebugPrint("TheClassicRace:OnEnable")
 
-    -- init the chat channel we use for "networking"
-    self.Network:InitChannel()
+    -- request an update of data
+    self.Tracker:RequestUpdate()
+
+    -- start updater
+    self.Updater:InitTicker()
+    self.Updater:StartScan()
 end

@@ -11,8 +11,8 @@ Objects sent are serialized and chunked to fit max size of messages.
 local TheClassicRace = _G.TheClassicRace
 
 -- WoW API
-local CreateFrame, C_ChatInfo, JoinChannelByName, GetChannelList =
-_G.CreateFrame, _G.C_ChatInfo, _G.JoinChannelByName, _G.GetChannelList
+local CreateFrame, C_ChatInfo, JoinChannelByName, GetChannelList, GetNumDisplayChannels =
+_G.CreateFrame, _G.C_ChatInfo, _G.JoinChannelByName, _G.GetChannelList, _G.GetNumDisplayChannels
 
 -- Libs
 local LibStub = _G.LibStub
@@ -48,10 +48,20 @@ function TheClassicRaceNetwork.new(Core, EventBus)
     self.NetworkThread:RegisterEvent("CHAT_MSG_ADDON")
     self.NetworkThread:RegisterEvent("CHAT_MSG_ADDON_LOGGED")
     self.NetworkThread:SetScript("OnEvent", function(_, event, ...)
-        if (event == "CHAT_MSG_ADDON" or event == "CHAT_MSG_ADDON_LOGGED") then
+        TheClassicRace:DebugPrint(event)
+        if (event == "CHANNEL_UI_UPDATE") then
+            self.NetworkThread:UnregisterEvent("CHANNEL_UI_UPDATE")
+            self:InitChannel()
+        elseif (event == "CHAT_MSG_ADDON" or event == "CHAT_MSG_ADDON_LOGGED") then
             self:HandleAddonMessage(...)
         end
     end)
+
+    if GetNumDisplayChannels() > 0 then
+        self:InitChannel()
+    else
+        self.NetworkThread:RegisterEvent("CHANNEL_UI_UPDATE")
+    end
 
     -- register our prefix for addon messages
     C_ChatInfo.RegisterAddonMessagePrefix(TheClassicRace.Config.Network.Prefix)

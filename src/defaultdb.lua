@@ -6,16 +6,14 @@ local TheClassicRaceDefaultDB = {
         top = 50,
     },
     realm = {
+        levelThreshold = 2,
         highestLevel = 1,
-        data = {
-            -- keyed per level
+        leader = nil, -- leader of the race in network format
+        players = {
             ['**'] = {
-                players = {
-                    ['**'] = {
-                        dingedAt = nil,
-                        lastseenAt = nil,
-                    },
-                }
+                level = nil,
+                dingedAt = nil,
+                lastseenAt = nil,
             },
         },
     },

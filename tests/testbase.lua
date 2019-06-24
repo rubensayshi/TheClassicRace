@@ -7,6 +7,7 @@ require("stubs.chatinfo")
 require("LibStub")
 require("AceDB-3dot0.AceDB-3dot0")
 require("AceSerializer-3dot0.AceSerializer-3dot0")
+--require("LibWho-2dot0.LibWho-2dot0")
 
 -- addon
 TheClassicRace = {}
@@ -18,10 +19,10 @@ require("util.chat")
 require("util.util")
 require("util.list-helpers")
 require("util.table-helpers")
-require("util.binary-search")
 require("core.core")
 require("core.event-bus")
-require("core.updater")
+require("core.scan")
+--require("core.updater")
 require("networking.network")
 
 return TheClassicRace

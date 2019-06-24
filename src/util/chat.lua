@@ -42,3 +42,9 @@ function TheClassicRace:DebugPrintTable(t)
         print(dump(t))
     end
 end
+
+function TheClassicRace:PlayerChatLink(playerName)
+    return TheClassicRace.Colors.SYSTEM_EVENT_YELLOW ..
+        "|Hplayer:" .. playerName .. "|h[" .. playerName .. "]|h" ..
+        TheClassicRace.Colors.WHITE
+end

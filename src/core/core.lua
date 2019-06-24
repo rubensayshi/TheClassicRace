@@ -2,7 +2,7 @@
 local TheClassicRace = _G.TheClassicRace
 
 -- WoW API
-local time = _G.time
+local GetServerTime = _G.GetServerTime
 
 ---@class TheClassicRaceCore
 local TheClassicRaceCore = {}
@@ -42,5 +42,5 @@ function TheClassicRaceCore:RealMe()
 end
 
 function TheClassicRaceCore:Now()
-    return time()
+    return GetServerTime()
 end
