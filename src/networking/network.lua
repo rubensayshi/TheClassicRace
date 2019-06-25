@@ -11,8 +11,8 @@ Objects sent are serialized and chunked to fit max size of messages.
 local TheClassicRace = _G.TheClassicRace
 
 -- WoW API
-local CreateFrame, C_ChatInfo, JoinChannelByName, GetChannelList, GetNumDisplayChannels =
-_G.CreateFrame, _G.C_ChatInfo, _G.JoinChannelByName, _G.GetChannelList, _G.GetNumDisplayChannels
+local CreateFrame, C_ChatInfo, GetChannelList, GetNumDisplayChannels =
+_G.CreateFrame, _G.C_ChatInfo, _G.GetChannelList, _G.GetNumDisplayChannels
 
 -- Libs
 local LibStub = _G.LibStub
@@ -57,6 +57,7 @@ function TheClassicRaceNetwork.new(Core, EventBus)
         end
     end)
 
+    -- init channel or register for a CHANNEL_UI_UPDATE if we're too early
     if GetNumDisplayChannels() > 0 then
         self:InitChannel()
     else
@@ -70,9 +71,6 @@ function TheClassicRaceNetwork.new(Core, EventBus)
 end
 
 function TheClassicRaceNetwork:InitChannel()
-    -- @TODO: do we need this when we're using C_ChatInfo.RegisterAddonMessagePrefix? there's a limit ...
-    -- @TODO: can't we simply send over "world" or something?
-    JoinChannelByName(TheClassicRace.Config.Network.Channel.Name)
     local channels = { GetChannelList() }
     local i = 2
     while i < #channels do
@@ -121,6 +119,10 @@ function TheClassicRaceNetwork:SendObject(event, object, channel, target)
     -- default to using the configured channel ID
     if channel == "CHANNEL" and target == nil then
         target = TheClassicRace.Config.Network.Channel.Id
+    end
+    -- no channel, no broadcast
+    if channel == "CHANNEL" and target == nil then
+        return
     end
 
     TheClassicRace:TracePrint("Network Event Send")

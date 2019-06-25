@@ -3,6 +3,16 @@ local TheClassicRace = _G.TheClassicRace
 -- list helpers
 TheClassicRace.list = {}
 
+TheClassicRace.list.contains = function(list, value)
+    for _, v in ipairs(list) do
+        if v == value then
+            return true
+        end
+    end
+
+    return false
+end
+
 TheClassicRace.list.reduce = function(list, fn, acc)
     for _, v in ipairs(list) do
         if acc == nil then

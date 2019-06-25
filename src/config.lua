@@ -14,10 +14,13 @@ local TheClassicRaceConfig = {
 
     MaxLevel = 60,
 
+    -- RequestUpdate throttle time window
+    Throttle = 60,
+
     Network = {
         Prefix = "TCRace",
         Channel = {
-            Name = "TheClassicRaceNetwork",
+            Name = "world",
             Id = 1, -- will be set at runtime to channel ID when joined
         },
         Events = {

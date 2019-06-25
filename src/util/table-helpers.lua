@@ -3,6 +3,16 @@ local TheClassicRace = _G.TheClassicRace
 -- table helpers
 TheClassicRace.table = {}
 
+TheClassicRace.table.contains = function(list, value)
+    for _, v in pairs(list) do
+        if v == value then
+            return true
+        end
+    end
+
+    return false
+end
+
 TheClassicRace.table.reduce = function(table, fn, acc)
     for _, v in pairs(table) do
         if acc == nil then

@@ -26,6 +26,8 @@ function TheClassicRaceTracker.new(Core, DB, EventBus, Network)
     self.EventBus = EventBus
     self.Network = Network
 
+    self.throttle = {}
+
     -- @TODO: do we need the frame?
     self.Frame = CreateFrame("Frame")
     self.Frame:SetScript("OnEvent", function()
@@ -41,6 +43,8 @@ function TheClassicRaceTracker.new(Core, DB, EventBus, Network)
 end
 
 function TheClassicRaceTracker:RequestUpdate()
+    -- request update over guild and channel
+    self.Network:SendObject(TheClassicRace.Config.Network.Events.RequestUpdate, {}, "GUILD")
     self.Network:SendObject(TheClassicRace.Config.Network.Events.RequestUpdate, {}, "CHANNEL")
 end
 
@@ -51,6 +55,26 @@ function TheClassicRaceTracker:OnRequestUpdate(_, sender)
         TheClassicRace:DebugPrint("Update Requested, but no leader")
         return
     end
+
+    -- cleanup throttle list
+    local now = self.Core:Now()
+    for _, throttle in ipairs(self.throttle) do
+        if throttle.time + TheClassicRace.Confg.Throttle < now then
+            table.remove(self.throttle, 1)
+        else
+            break
+        end
+    end
+
+    -- check if sender is still in throttle window
+    for _, throttle in ipairs(self.throttle) do
+        if throttle.sender == sender then
+            return
+        end
+    end
+
+    -- add sender to throttle list
+    self.throttle.insert({Sender = sender, Time = now})
 
     -- respond with leader
     self.Network:SendObject(TheClassicRace.Config.Network.Events.Ding, self.DB.realm.leader, "WHISPER", sender)
@@ -109,6 +133,8 @@ function TheClassicRaceTracker:HandlePlayerInfo(playerInfo, shouldBroadcast)
         if shouldBroadcast then
             self.Network:SendObject(TheClassicRace.Config.Network.Events.Ding,
                     { playerInfo.Name, playerInfo.Level, dingedAt }, "CHANNEL")
+            self.Network:SendObject(TheClassicRace.Config.Network.Events.Ding,
+                    { playerInfo.Name, playerInfo.Level, dingedAt }, "GUILD")
         end
     end
 
