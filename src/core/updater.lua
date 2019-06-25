@@ -37,7 +37,7 @@ function TheClassicRaceUpdater.new(Core, DB, EventBus)
     self.Ticker = nil
     self.Scan = nil
 
-    if TheClassicRace.Config.Debug then
+    if TheClassicRace.Config.Trace then
         LibWho:SetWhoLibDebug(true)
     end
 
