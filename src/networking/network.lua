@@ -97,7 +97,6 @@ function TheClassicRaceNetwork:HandleAddonMessage(...)
         return
     end
 
-    -- @TODO: does sender always include server?
     if (prefix:find(TheClassicRace.Config.Network.Prefix) and sender ~= self.Core:FullRealMe()) then
         local headers, content = self:SplitNetworkPackage(message)
         self.MessageBuffer[headers.Hash] = self.MessageBuffer[headers.Hash] or {}
