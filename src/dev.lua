@@ -20,9 +20,13 @@ function TheClassicRace:tcr(input)
     elseif action == "reset" then
         self.DB:ResetDB()
 
-    --[[REQUEST UPDATE]]--
+    --[[SHOW FRAME]]--
     elseif action == "show" then
         self.StatusFrame:Show()
+
+    --[[UPDATE FRAME]]--
+    elseif action == "render" then
+        self.StatusFrame:Render()
 
     --[[REQUEST UPDATE]]--
     elseif action == "update" then

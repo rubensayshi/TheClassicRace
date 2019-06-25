@@ -24,16 +24,27 @@ setmetatable(TheClassicRaceStatusFrame, {
     end,
 })
 
-function TheClassicRaceStatusFrame.new(Config, Core, DB)
+function TheClassicRaceStatusFrame.new(Config, Core, DB, EventBus)
     local self = setmetatable({}, TheClassicRaceStatusFrame)
 
     self.Config = Config
     self.Core = Core
     self.DB = DB
+    self.EventBus = EventBus
+
+    -- subscribe to local events
+    EventBus:RegisterCallback(self.Config.Events.Ding, self, self.OnDing)
 
     self.frame = nil
+    self.contentframe = nil
 
     return self
+end
+
+function TheClassicRaceStatusFrame:OnDing()
+    if self.frame ~= nil and self.contentframe ~= nil then
+        self:Render()
+    end
 end
 
 function TheClassicRaceStatusFrame:Show()
@@ -54,6 +65,29 @@ function TheClassicRaceStatusFrame:Show()
         widget:Release()
         _self.frame = nil
     end)
+
+    self.frame = frame
+
+    self:Render()
+end
+
+function TheClassicRaceStatusFrame:Render()
+    -- clear the old content
+    self.frame:ReleaseChildren()
+
+    local _self = self
+
+    -- need a container
+    local frame = AceGUI:Create("SimpleGroup")
+    frame:SetLayout("Flow")
+    frame:SetFullWidth(true)
+    frame:SetFullHeight(true)
+    frame:SetCallback("OnClose", function(widget)
+        widget:ReleaseChildren()
+        widget:Release()
+        _self.contentframe = nil
+    end)
+    self.frame:AddChild(frame)
 
     -- display the leader
     if #self.DB.realm.leaderboard > 0 then
@@ -115,5 +149,8 @@ function TheClassicRaceStatusFrame:Show()
         end
     end
 
-    self.frame = frame
+    -- trigger layout update to fix blank first row
+    scroll:DoLayout()
+
+    self.contentframe = frame
 end
