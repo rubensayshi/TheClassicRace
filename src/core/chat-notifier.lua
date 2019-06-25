@@ -33,16 +33,16 @@ end
 function TheClassicRaceChatNotifier:OnDing(playerInfo, rank)
     if rank == 1 then
         if playerInfo.level == self.Config.MaxLevel then
-            TheClassicRace:PPrint("The race is over! Gratz to " .. playerInfo.name .. ", first to reach max level!!")
+            TheClassicRace:PPrint("The race is over! Gratz to " .. TheClassicRace:PlayerChatLink(playerInfo.name) .. ", first to reach max level!!")
         else
             TheClassicRace:PPrint("Gratz to " .. TheClassicRace:PlayerChatLink(playerInfo.name) .. ", " ..
                     "first to reach level " .. playerInfo.level .. "!")
         end
     else
         if playerInfo.level == self.Config.MaxLevel then
-            TheClassicRace:PPrint("Gratz to " .. playerInfo.name .. ", reached max level as #" .. rank .. "!")
+            TheClassicRace:PPrint("Gratz to " .. TheClassicRace:PlayerChatLink(playerInfo.name) .. ", reached max level as #" .. rank .. "!")
         else
-            TheClassicRace:PPrint("Gratz to " .. playerInfo.name .. ", reached level " .. playerInfo.level .. "! " ..
+            TheClassicRace:PPrint("Gratz to " .. TheClassicRace:PlayerChatLink(playerInfo.name) .. ", reached level " .. playerInfo.level .. "! " ..
                     "Currently rank #" .. rank .. " in the race!")
         end
     end
