@@ -122,20 +122,44 @@ describe("Tracker", function()
             }, db.realm.leaderboard)
         end)
 
-        it("shouldn't broadcast OnDing", function()
+        it("should broadcast internal event", function()
+            local eventBusSpy = spy.on(eventbus, "PublishEvent")
+
+            tracker:HandlePlayerInfo({name = "Nub1", level = 5}, false)
+            assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), config.Events.Ding,
+                    match.is_table(), 1)
+
+            tracker:HandlePlayerInfo({name = "Nub1", level = 6}, false)
+            assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), config.Events.Ding,
+                    match.is_table(), 1)
+
+            tracker:HandlePlayerInfo({name = "Nub2", level = 7}, false)
+            assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), config.Events.Ding,
+                    match.is_table(), 1)
+
+            eventBusSpy:clear()
+            tracker:HandlePlayerInfo({name = "Nub1", level = 6}, false)
+            assert.spy(eventBusSpy).was_not_called()
+
+            tracker:HandlePlayerInfo({name = "Nub1", level = 7}, false)
+            assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), config.Events.Ding,
+                    match.is_table(), 2)
+        end)
+
+        it("shouldn't broadcast to network OnDing", function()
             local networkSpy = spy.on(network, "SendObject")
 
             tracker:OnDing({"Nub1", 5, nil})
             assert.spy(networkSpy).was_not_called()
         end)
 
-        it("should broadcast OnPlayerInfo", function()
+        it("should broadcast to network OnPlayerInfo", function()
             local networkSpy = spy.on(network, "SendObject")
 
             tracker:OnPlayerInfo({name = "Nub1", level = 5})
-            assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.Ding,
+            assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.PlayerInfo,
                     match.is_table(), "CHANNEL")
-            assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.Ding,
+            assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.PlayerInfo,
                     match.is_table(), "GUILD")
         end)
     end)
@@ -159,7 +183,7 @@ describe("Tracker", function()
 
             tracker:OnRequestUpdate(nil, "Roobs")
 
-            assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.Ding,
+            assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.PlayerInfo,
                     {"Nub1", 5, time}, "WHISPER", "Roobs")
         end)
 
@@ -171,7 +195,7 @@ describe("Tracker", function()
 
             tracker:OnRequestUpdate(nil, "Roobs")
 
-            assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.Ding,
+            assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.PlayerInfo,
                     {"Nub1", 5, dingedAt}, "WHISPER", "Roobs")
 
             networkSpy:clear()
@@ -183,7 +207,7 @@ describe("Tracker", function()
             time = time + config.Throttle
             tracker:OnRequestUpdate(nil, "Roobs")
 
-            assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.Ding,
+            assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.PlayerInfo,
                     {"Nub1", 5, dingedAt}, "WHISPER", "Roobs")
         end)
     end)

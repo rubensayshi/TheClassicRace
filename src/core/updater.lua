@@ -8,6 +8,13 @@ local LibWho = LibStub("LibWho-2.0")
 -- WoW API
 local C_Timer = _G.C_Timer
 
+--[[
+Updater is responsible for periodically doing a Scan to get updated results
+and relaying that back to the rest of the system through the EventBus
+
+This is also the place where we have the LibWho specific code, so it's not being unittested atm ...
+so it would be good if we can keep it small
+]]--
 ---@class TheClassicRaceUpdater
 ---@field DB table<string, table>
 ---@field Core TheClassicRaceCore
@@ -53,7 +60,7 @@ function TheClassicRaceUpdater:ProcessWhoResult(result)
     for _, player in ipairs(result) do
         -- Name, Online, Guild, Class, Race, Level, Zone
 
-        self.EventBus:PublishEvent(TheClassicRace.Config.Events.PlayerInfo, {
+        self.EventBus:PublishEvent(TheClassicRace.Config.Events.SlashWhoResult, {
             name = player.Name,
             level = player.Level,
         })

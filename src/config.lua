@@ -25,12 +25,13 @@ local TheClassicRaceConfig = {
             Id = 1, -- will be set at runtime to channel ID when joined
         },
         Events = {
-            Ding = "TCRACE_DING",
-            RequestUpdate = "TCRACE_REQUEST_UPDATE",
+            PlayerInfo = "TCRACE_NET_PLAYER_INFO",
+            RequestUpdate = "TCRACE_NET_REQUEST_UPDATE",
         },
     },
     Events = {
-        PlayerInfo = "TCRACE_PLAYER_INFO",
+        SlashWhoResult = "TCRACE_WHO_RESULT",
+        Ding = "TCRACE_DING",
     },
 }
 TheClassicRace.Config = TheClassicRaceConfig

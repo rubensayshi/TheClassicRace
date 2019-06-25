@@ -1,6 +1,10 @@
 -- Addon global
 local TheClassicRace = _G.TheClassicRace
 
+--[[
+Tracker is responsible for maintaining our leaderboard data based on data provided by other parts of the system
+to us through the EventBus.
+]]--
 ---@class TheClassicRaceTracker
 ---@field DB table<string, table>
 ---@field Core TheClassicRaceCore
@@ -27,10 +31,10 @@ function TheClassicRaceTracker.new(Config, Core, DB, EventBus, Network)
     self.throttles = {}
 
     -- subscribe to network events
-    EventBus:RegisterCallback(self.Config.Network.Events.Ding, self, self.OnDing)
+    EventBus:RegisterCallback(self.Config.Network.Events.PlayerInfo, self, self.OnPlayerInfo)
     EventBus:RegisterCallback(self.Config.Network.Events.RequestUpdate, self, self.OnRequestUpdate)
     -- subscribe to local events
-    EventBus:RegisterCallback(self.Config.Events.PlayerInfo, self, self.OnPlayerInfo)
+    EventBus:RegisterCallback(self.Config.Events.SlashWhoResult, self, self.OnSlashWhoResult)
 
     return self
 end
@@ -72,14 +76,14 @@ function TheClassicRaceTracker:OnRequestUpdate(_, sender)
     table.insert(self.throttles, {sender = sender, time = now})
 
     -- respond with leader
-    self.Network:SendObject(self.Config.Network.Events.Ding, {
+    self.Network:SendObject(self.Config.Network.Events.PlayerInfo, {
         self.DB.realm.leaderboard[1].name,
         self.DB.realm.leaderboard[1].level,
         self.DB.realm.leaderboard[1].dingedAt
     }, "WHISPER", sender)
 end
 
-function TheClassicRaceTracker:OnDing(playerInfo)
+function TheClassicRaceTracker:OnPlayerInfo(playerInfo)
     self:HandlePlayerInfo({
         name = playerInfo[1],
         level = playerInfo[2],
@@ -87,7 +91,7 @@ function TheClassicRaceTracker:OnDing(playerInfo)
     }, false)
 end
 
-function TheClassicRaceTracker:OnPlayerInfo(playerInfo)
+function TheClassicRaceTracker:OnSlashWhoResult(playerInfo)
     self:HandlePlayerInfo(playerInfo, true)
 end
 
@@ -161,27 +165,19 @@ function TheClassicRaceTracker:HandlePlayerInfo(playerInfo, shouldBroadcast)
 
     -- broadcast
     if shouldBroadcast then
-        self.Network:SendObject(self.Config.Network.Events.Ding,
+        self.Network:SendObject(self.Config.Network.Events.PlayerInfo,
                 { playerInfo.name, playerInfo.level, dingedAt }, "CHANNEL")
-        self.Network:SendObject(self.Config.Network.Events.Ding,
+        self.Network:SendObject(self.Config.Network.Events.PlayerInfo,
                 { playerInfo.name, playerInfo.level, dingedAt }, "GUILD")
     end
 
-    -- new highest level! implies ding
-    if playerInfo.level > self.DB.realm.highestLevel then
-        self.DB.realm.highestLevel = playerInfo.level
-
-        -- @TODO: move out of tracker
-        if playerInfo.level == self.Config.MaxLevel then
-            TheClassicRace:PPrint("The race is over! Gratz to " .. playerInfo.name .. ", first to reach max level!!")
-        else
-            TheClassicRace:PPrint("Gratz to " .. TheClassicRace:PlayerChatLink(playerInfo.name) .. ", " ..
-            "first to reach level " .. playerInfo.level .. "!")
-        end
-    elseif isDing then
-        TheClassicRace:PPrint("Gratz to " .. playerInfo.name .. ", reached level " .. playerInfo.level .. "! " ..
-        "Currently rank #" .. insertAtRank .. "in the race!")
+    -- publish internal event
+    if isNew or isDing then
+        self.EventBus:PublishEvent(self.Config.Events.Ding, playerInfo, insertAtRank)
     end
+
+    -- update highest level
+    self.DB.realm.highestLevel = math.max(self.DB.realm.highestLevel, playerInfo.level)
 
     -- we only care about levels >= our bottom ranked on the leaderboard
     self.DB.realm.levelThreshold = self.DB.realm.leaderboard[#self.DB.realm.leaderboard].level

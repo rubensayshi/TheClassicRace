@@ -10,6 +10,7 @@ local LibStub = _G.LibStub
 ---@field EventBus TheClassicRaceEventBus
 ---@field Updater TheClassicRaceUpdater
 ---@field Tracker TheClassicRaceTracker
+---@field ChatNotifier TheClassicRaceChatNotifier
 ---@field DefaultDB TheClassicRaceDefaultDB
 TheClassicRace = LibStub("AceAddon-3.0"):NewAddon("TheClassicRace", "AceConsole-3.0")
 
@@ -28,6 +29,7 @@ function TheClassicRace:OnInitialize()
     self.Network = TheClassicRace.Network(self.Core, self.EventBus)
     self.Updater = TheClassicRace.Updater(self.Core, self.DB, self.EventBus, who)
     self.Tracker = TheClassicRace.Tracker(self.Config, self.Core, self.DB, self.EventBus, self.Network)
+    self.ChatNotifier = TheClassicRace.ChatNotifier(self.Config, self.Core, self.EventBus)
 
     self:DebugPrint("me: " .. self.Core:RealMe())
 end

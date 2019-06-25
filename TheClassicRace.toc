@@ -23,3 +23,4 @@ src\core\core.lua
 src\core\tracker.lua
 src\core\updater.lua
 src\core\scan.lua
+src\core\chat-notifier.lua

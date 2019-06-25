@@ -36,9 +36,9 @@ function TheClassicRace:tcr(input)
     --[[DING name level]]--
     elseif action == "ding" then
         TheClassicRace:DebugPrint("Forced Ding [" .. arg1 .. "] lvl" .. arg2 .. ".")
-        self.EventBus:PublishEvent(self.Config.Events.PlayerInfo, {
-            Name = arg1,
-            Level = tonumber(arg2),
+        self.EventBus:PublishEvent(self.Config.Events.SlashWhoResult, {
+            name = arg1,
+            level = tonumber(arg2),
         })
     else
         self:PPrint("Unknown action: " .. tostring(action))
