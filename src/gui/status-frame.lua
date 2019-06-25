@@ -87,7 +87,7 @@ function TheClassicRaceStatusFrame:Show()
         if selfRank ~= nil and selfRank > 1 then
             local you = AceGUI:Create("Label")
             you:SetFullWidth(true)
-            you:SetText(WHITE .. "You are #" .. selfRank .. "! " .. SEYELLOW .. " lvl" .. self.DB.realm.leaderboard[selfRank].level)
+            you:SetText(WHITE .. "You are #" .. selfRank .. "!" .. SEYELLOW .. " lvl" .. self.DB.realm.leaderboard[selfRank].level)
             you:SetFont(GameFontNormalLarge:GetFont())
             you.label:SetJustifyH("CENTER")
             frame:AddChild(you)

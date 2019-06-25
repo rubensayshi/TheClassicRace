@@ -40,6 +40,12 @@ function TheClassicRace:OnEnable()
     -- debug print, will also help us know if debugging is enabled
     self:DebugPrint("TheClassicRace:OnEnable")
 
+
+    -- determine who we are
+    local player, realm = UnitFullName("player")
+    self.Core:InitMe(player, realm)
+    self:DebugPrint("me: " .. self.Core:RealMe())
+
     -- request an update of data
     self.Tracker:RequestUpdate()
 

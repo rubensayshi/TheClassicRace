@@ -180,5 +180,7 @@ function TheClassicRaceTracker:HandlePlayerInfo(playerInfo, shouldBroadcast)
     self.DB.realm.highestLevel = math.max(self.DB.realm.highestLevel, playerInfo.level)
 
     -- we only care about levels >= our bottom ranked on the leaderboard
-    self.DB.realm.levelThreshold = self.DB.realm.leaderboard[#self.DB.realm.leaderboard].level
+    if  #self.DB.realm.leaderboard >= self.Config.LeaderboardSize then
+        self.DB.realm.levelThreshold = self.DB.realm.leaderboard[#self.DB.realm.leaderboard].level
+    end
 end

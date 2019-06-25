@@ -13,6 +13,17 @@ TheClassicRace.list.contains = function(list, value)
     return false
 end
 
+TheClassicRace.list.filter = function(list, filterfn)
+    local result = {}
+    for _, v in ipairs(list) do
+        if filterfn(v) then
+            table.insert(result, v)
+        end
+    end
+
+    return result
+end
+
 TheClassicRace.list.reduce = function(list, fn, acc)
     for _, v in ipairs(list) do
         if acc == nil then

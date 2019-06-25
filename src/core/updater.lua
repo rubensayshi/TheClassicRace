@@ -52,17 +52,25 @@ function TheClassicRaceUpdater.new(Core, DB, EventBus)
 end
 
 function TheClassicRaceUpdater:ProcessWhoResult(result)
+    -- filter out nils, seems to be a possibility ...
+    result = TheClassicRace.list.filter(result, function (player)
+        return player ~= nil and player.Name ~= nil and player.Level ~= nil
+    end)
+
     -- sort table descending on their level to make sure we don't announce multiple leaders from 1 result
     -- @TODO: need to write test for this
-    table.sort(result, function(a, b)
-        return a.Level > b.Level
-    end)
+    if #result > 1 then
+        table.sort(result, function(a, b)
+            return a.Level > b.Level
+        end)
+    end
 
     for _, player in ipairs(result) do
         -- Name, Online, Guild, Class, Race, Level, Zone
+        local name = self.Core:SplitFullPlayer(player.Name)
 
         self.EventBus:PublishEvent(TheClassicRace.Config.Events.SlashWhoResult, {
-            name = player.Name,
+            name = name,
             level = player.Level,
         })
     end

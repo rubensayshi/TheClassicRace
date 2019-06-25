@@ -28,7 +28,7 @@ describe("Scan", function()
         function core:Now() return time end
         eventbus = TheClassicRace.EventBus()
         libWhoMock = LibWhoMock()
-        scan = TheClassicRace.Scan(Core, db, EventBus, function(min, max, cb)
+        scan = TheClassicRace.Scan(core, db, eventbus, function(min, max, cb)
             libWhoMock:Who(min, max, cb)
         end, 1, 60)
     end)

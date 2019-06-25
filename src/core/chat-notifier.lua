@@ -39,7 +39,11 @@ function TheClassicRaceChatNotifier:OnDing(playerInfo, rank)
                     "first to reach level " .. playerInfo.level .. "!")
         end
     else
-        TheClassicRace:PPrint("Gratz to " .. playerInfo.name .. ", reached level " .. playerInfo.level .. "! " ..
-                "Currently rank #" .. rank .. " in the race!")
+        if playerInfo.level == self.Config.MaxLevel then
+            TheClassicRace:PPrint("Gratz to " .. playerInfo.name .. ", reached max level as #" .. rank .. "!")
+        else
+            TheClassicRace:PPrint("Gratz to " .. playerInfo.name .. ", reached level " .. playerInfo.level .. "! " ..
+                    "Currently rank #" .. rank .. " in the race!")
+        end
     end
 end

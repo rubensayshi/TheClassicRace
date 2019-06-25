@@ -92,6 +92,18 @@ end
 
 function TheClassicRaceScan:Shortcut()
     local function cb(query, result, complete)
+        -- filter out nils, seems to be a possibility ...
+        -- filter out other servers ...
+        result = TheClassicRace.list.filter(result, function (player)
+            if player ~= nil and player.Name ~= nil and player.Level ~= nil then
+                local _, realm = self.Core:SplitFullPlayer(player.Name)
+
+                return realm == nil or self.Core:IsMyRealm(realm)
+            else
+                return false
+            end
+        end)
+
         TheClassicRace:DebugPrint("who '" .. query .. "' result: " .. #result .. ", complete: " .. tostring(complete))
 
         if complete and #result > 0 then

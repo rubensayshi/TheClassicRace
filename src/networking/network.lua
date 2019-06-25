@@ -83,15 +83,22 @@ function TheClassicRaceNetwork:InitChannel()
 end
 
 function TheClassicRaceNetwork:HandleAddonMessage(...)
+    -- sender is always full name (name-realm)
     local prefix, message, _, sender = ...
 
     -- so we can pretend to be somebody else
-    if sender == self.Core:RealMe() then
-        sender = self.Core:Me()
+    if sender == self.Core:FullRealMe() then
+        sender = self.Core:FullMe()
+    end
+
+    -- completely ignore anything from other realms
+    local _, senderRealm = self.Core:SplitFullPlayer(sender)
+    if not self.Core:IsMyRealm(senderRealm) then
+        return
     end
 
     -- @TODO: does sender always include server?
-    if (prefix:find(TheClassicRace.Config.Network.Prefix) and sender ~= self.Core:RealMe()) then
+    if (prefix:find(TheClassicRace.Config.Network.Prefix) and sender ~= self.Core:FullRealMe()) then
         local headers, content = self:SplitNetworkPackage(message)
         self.MessageBuffer[headers.Hash] = self.MessageBuffer[headers.Hash] or {}
         self.MessageBuffer[headers.Hash][headers.Order] = content
