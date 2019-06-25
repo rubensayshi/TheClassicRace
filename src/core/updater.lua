@@ -52,7 +52,8 @@ function TheClassicRaceUpdater.new(Core, DB, EventBus)
 end
 
 function TheClassicRaceUpdater:ProcessWhoResult(result)
-    -- sort table descending on their level
+    -- sort table descending on their level to make sure we don't announce multiple leaders from 1 result
+    -- @TODO: need to write test for this
     table.sort(result, function(a, b)
         return a.Level > b.Level
     end)
@@ -80,11 +81,13 @@ end
 function TheClassicRaceUpdater:StartScan()
     -- we don't start another scan when the queue isn't empty yet
     if not LibWho:AllQueuesEmpty() then
+        TheClassicRace:DebugPrint("StartScan but LibWho not ready")
         return
     end
 
     -- don't start a scan if previous is still busy
     if self.Scan ~= nil and not self.Scan:IsDone() then
+        TheClassicRace:DebugPrint("StartScan but scan still in progress")
         return
     end
 

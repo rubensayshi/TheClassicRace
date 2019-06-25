@@ -43,6 +43,7 @@ describe("Scan", function()
         libWhoMock:ExpectWho(13, 60, true, {{Name = "Leader", Level = 13}})
 
         scan:Start()
+        assert.equals(true, scan:IsDone())
         libWhoMock:Assert()
     end)
 
@@ -56,6 +57,7 @@ describe("Scan", function()
         libWhoMock:ExpectWho(8, 60, true, {{Name = "Leader", Level = 13}})
 
         scan:Start()
+        assert.equals(true, scan:IsDone())
         libWhoMock:Assert()
     end)
 
@@ -67,6 +69,7 @@ describe("Scan", function()
         libWhoMock:ExpectWho(42, 60, true, {{Name = "Leader", Level = 42}})
 
         scan:Start()
+        assert.equals(true, scan:IsDone())
         libWhoMock:Assert()
     end)
 
@@ -80,6 +83,7 @@ describe("Scan", function()
         libWhoMock:ExpectWho(38, 60, true, {{Name = "Leader", Level = 42}})
 
         scan:Start()
+        assert.equals(true, scan:IsDone())
         libWhoMock:Assert()
     end)
 
@@ -93,6 +97,7 @@ describe("Scan", function()
         libWhoMock:ExpectWho(42, 60, true, {{Name = "Leader", Level = 42}})
 
         scan:Start()
+        assert.equals(true, scan:IsDone())
         libWhoMock:Assert()
     end)
 
@@ -106,6 +111,7 @@ describe("Scan", function()
         libWhoMock:ExpectWho(41, 60, true, {{Name = "Leader", Level = 42}})
 
         scan:Start()
+        assert.equals(true, scan:IsDone())
         libWhoMock:Assert()
     end)
 
@@ -123,6 +129,7 @@ describe("Scan", function()
         libWhoMock:ExpectWho(60, 60, false, {{Name = "Leader", Level = 60}})
 
         scan:Start()
+        assert.equals(true, scan:IsDone())
         libWhoMock:Assert()
     end)
 
@@ -140,6 +147,7 @@ describe("Scan", function()
         libWhoMock:ExpectWho(60, 60, false, {{Name = "Leader", Level = 60}})
 
         scan:Start()
+        assert.equals(true, scan:IsDone())
         libWhoMock:Assert()
     end)
 end)

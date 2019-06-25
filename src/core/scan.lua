@@ -95,6 +95,8 @@ function TheClassicRaceScan:Shortcut()
         TheClassicRace:DebugPrint("who '" .. query .. "' result: " .. #result .. ", complete: " .. tostring(complete))
 
         if complete and #result > 0 then
+            self.done = true
+
             for _, player in ipairs(result) do
                 TheClassicRace:DebugPrint(" - " .. player.Name .. " lvl" .. player.Level)
             end

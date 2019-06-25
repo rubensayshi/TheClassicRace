@@ -146,17 +146,17 @@ describe("Tracker", function()
                     match.is_table(), 2)
         end)
 
-        it("shouldn't broadcast to network OnDing", function()
+        it("shouldn't broadcast to network OnPlayerInfo", function()
             local networkSpy = spy.on(network, "SendObject")
 
-            tracker:OnDing({"Nub1", 5, nil})
+            tracker:OnPlayerInfo({"Nub1", 5, nil})
             assert.spy(networkSpy).was_not_called()
         end)
 
-        it("should broadcast to network OnPlayerInfo", function()
+        it("should broadcast to network OnSlashWhoResult", function()
             local networkSpy = spy.on(network, "SendObject")
 
-            tracker:OnPlayerInfo({name = "Nub1", level = 5})
+            tracker:OnSlashWhoResult({name = "Nub1", level = 5})
             assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.PlayerInfo,
                     match.is_table(), "CHANNEL")
             assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.PlayerInfo,

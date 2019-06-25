@@ -29,8 +29,8 @@ function TheClassicRace:tcr(input)
         TheClassicRace:PPrint("highest level: " .. self.DB.realm.highestLevel)
         TheClassicRace:PPrint("lower bound threshold: " .. self.DB.realm.levelThreshold)
 
-        for playerName, playerInfo in pairs(self.DB.realm.leaderboard) do
-            print(" - " .. playerName .. " lvl" .. playerInfo.level)
+        for rank, playerInfo in ipairs(self.DB.realm.leaderboard) do
+            print(" - #" .. rank .. " " .. playerInfo.name .. " lvl" .. playerInfo.level)
         end
 
     --[[DING name level]]--

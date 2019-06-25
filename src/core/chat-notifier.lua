@@ -17,9 +17,10 @@ setmetatable(TheClassicRaceChatNotifier, {
     end,
 })
 
-function TheClassicRaceChatNotifier.new(Core, EventBus)
+function TheClassicRaceChatNotifier.new(Config, Core, EventBus)
     local self = setmetatable({}, TheClassicRaceChatNotifier)
 
+    self.Config = Config
     self.Core = Core
     self.EventBus = EventBus
 
