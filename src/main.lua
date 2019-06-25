@@ -27,7 +27,7 @@ function TheClassicRace:OnInitialize()
     self.EventBus = TheClassicRace.EventBus()
     self.Network = TheClassicRace.Network(self.Core, self.EventBus)
     self.Updater = TheClassicRace.Updater(self.Core, self.DB, self.EventBus, who)
-    self.Tracker = TheClassicRace.Tracker(self.Core, self.DB, self.EventBus, self.Network)
+    self.Tracker = TheClassicRace.Tracker(self.Config, self.Core, self.DB, self.EventBus, self.Network)
 
     self:DebugPrint("me: " .. self.Core:RealMe())
 end

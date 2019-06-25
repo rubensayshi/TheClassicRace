@@ -22,7 +22,7 @@ require("util.table-helpers")
 require("core.core")
 require("core.event-bus")
 require("core.scan")
---require("core.updater")
+require("core.tracker")
 require("networking.network")
 
 return TheClassicRace

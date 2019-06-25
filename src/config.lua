@@ -13,6 +13,7 @@ local TheClassicRaceConfig = {
     Trace = true,
 
     MaxLevel = 60,
+    LeaderboardSize = 50,
 
     -- RequestUpdate throttle time window
     Throttle = 60,

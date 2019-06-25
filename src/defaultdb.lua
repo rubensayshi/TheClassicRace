@@ -8,14 +8,7 @@ local TheClassicRaceDefaultDB = {
     realm = {
         levelThreshold = 2,
         highestLevel = 1,
-        leader = nil, -- leader of the race in network format
-        players = {
-            ['**'] = {
-                level = nil,
-                dingedAt = nil,
-                lastseenAt = nil,
-            },
-        },
+        leaderboard = {},
     },
 }
 

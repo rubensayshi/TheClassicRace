@@ -53,7 +53,10 @@ function TheClassicRaceUpdater:ProcessWhoResult(result)
     for _, player in ipairs(result) do
         -- Name, Online, Guild, Class, Race, Level, Zone
 
-        self.EventBus:PublishEvent(TheClassicRace.Config.Events.PlayerInfo, player)
+        self.EventBus:PublishEvent(TheClassicRace.Config.Events.PlayerInfo, {
+            name = player.Name,
+            level = player.Level,
+        })
     end
 end
 
@@ -82,6 +85,9 @@ function TheClassicRaceUpdater:StartScan()
         LibWho:Who(min .. "-" .. max, { queue = LibWho.WHOLIB_QUERY_QUIET, callback = cb })
     end
 
-    self.Scan = TheClassicRace.Scan(self.Core, self.DB, self.EventBus, who)
+    local min = self.DB.realm.levelThreshold
+    local max = TheClassicRace.Config.MaxLevel
+
+    self.Scan = TheClassicRace.Scan(self.Core, self.DB, self.EventBus, who, min, max)
     self.Scan:Start()
 end
