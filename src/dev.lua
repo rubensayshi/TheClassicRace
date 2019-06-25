@@ -21,6 +21,10 @@ function TheClassicRace:tcr(input)
         self.DB:ResetDB()
 
     --[[REQUEST UPDATE]]--
+    elseif action == "show" then
+        self.StatusFrame:Show()
+
+    --[[REQUEST UPDATE]]--
     elseif action == "update" then
         self.Tracker:RequestUpdate()
 

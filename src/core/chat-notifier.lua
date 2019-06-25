@@ -40,6 +40,6 @@ function TheClassicRaceChatNotifier:OnDing(playerInfo, rank)
         end
     else
         TheClassicRace:PPrint("Gratz to " .. playerInfo.name .. ", reached level " .. playerInfo.level .. "! " ..
-                "Currently rank #" .. rank .. "in the race!")
+                "Currently rank #" .. rank .. " in the race!")
     end
 end
