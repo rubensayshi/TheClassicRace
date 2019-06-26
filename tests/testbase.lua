@@ -3,11 +3,12 @@ require("stubs.misc")
 require("stubs.player")
 require("stubs.createframe")
 require("stubs.chatinfo")
--- libs
-require("LibStub")
-require("AceDB-3dot0.AceDB-3dot0")
-require("AceSerializer-3dot0.AceSerializer-3dot0")
---require("LibWho-2dot0.LibWho-2dot0")
+
+-- libs loaded with dofile() because dots in the names ...
+dofile("libs/LibStub/LibStub.lua")
+dofile("libs/AceDB/AceDB-3.0.lua")
+dofile("libs/AceSerializer/AceSerializer-3.0.lua")
+--require("libs/LibWho-2.0/LibWho-2.0.lua")
 
 -- addon
 TheClassicRace = {}

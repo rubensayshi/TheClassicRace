@@ -1,6 +1,11 @@
 language: python
 sudo: false
 
+addons:
+  apt:
+    packages:
+      - pandoc  # contains jq
+
 env:
   - LUA="lua 5.3"
 
@@ -12,9 +17,11 @@ before_install:
 
 install:
   - make setup-dev
+  - TRAVIS="" make fetch-libs
 
 script:
   - make lint tests
+  - (./check-travis-release.sh && make release) || echo "not on release branch"
 
 after_success:
   - luacov-coveralls --root ./ --include 'src/*'

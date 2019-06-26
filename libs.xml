@@ -1,12 +1,9 @@
 <Ui xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\FrameXML\UI.xsd">
     <Script file="libs\LibStub\LibStub.lua"/>
-    <Script file="libs\AceSerializer-3dot0\AceSerializer-3dot0.lua"/>
-    <Script file="libs\AceConsole-3dot0\AceConsole-3dot0.lua"/>
-    <Script file="libs\AceDB-3dot0\AceDB-3dot0.lua"/>
-
-    <Include file="libs\AceAddon-3dot0\AceAddon-3dot0.xml"/>
-    <Include file="libs\AceGUI-3dot0\AceGUI-3dot0.xml"/>
-    <Include file="libs\LibDBIcon-1dot0\embeds.xml"/>
-    <Script file="libs\LibDBIcon-1dot0\LibDBIcon\LibDBIcon.lua"/>
-    <Script file="libs\LibWho-2dot0\LibWho-2dot0.lua"/>
+    <Script file="libs\AceSerializer\AceSerializer-3.0.lua"/>
+    <Script file="libs\AceConsole\AceConsole-3.0.lua"/>
+    <Script file="libs\AceDB\AceDB-3.0.lua"/>
+    <Include file="libs\AceAddon\AceAddon-3.0.xml"/>
+    <Include file="libs\AceGUI\AceGUI-3.0.xml"/>
+    <Script file="libs\LibWho\LibWho-2.0\LibWho-2.0.lua"/>
 </Ui>

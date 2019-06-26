@@ -18,8 +18,7 @@ TheClassicRace = LibStub("AceAddon-3.0"):NewAddon("TheClassicRace", "AceConsole-
 function TheClassicRace:OnInitialize()
     self.DB = LibStub("AceDB-3.0"):New("TheClassicRace_DB", TheClassicRace.DefaultDB, true)
 
-    -- @TODO: these are related to the stuff in dev.lua...
-    self:RegisterChatCommand("tcr", "tcr")
+    self:RegisterChatCommand("tcr", "slashtcr")
 
     -- determine who we are
     local player, realm = UnitFullName("player")
@@ -52,4 +51,11 @@ function TheClassicRace:OnEnable()
     -- start updater
     self.Updater:InitTicker()
     self.Updater:StartScan()
+end
+
+--[[
+The /tcr handler, toggles the frame, unless overwritten in dev.lua with a more advanced development mode /tcr
+--]]
+function TheClassicRace:slashtcr(input)
+    self.StatusFrame:Show()
 end

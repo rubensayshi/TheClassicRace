@@ -1,15 +1,13 @@
 ﻿--[[
 This file contains development-only things that aren't pretty but don't need to be ... xD
-
-@TODO: when we make something to build releases it should make sure to omit this file
 --]]
 -- Addon global
 local TheClassicRace = _G.TheClassicRace
 
 --[[
-TheClassicRace:tcr is our /tcr handler, it's temporary because everything should get a UI ...
+The /tcr handler, overwrites with a more advanced development mode /tcr
 --]]
-function TheClassicRace:tcr(input)
+function TheClassicRace:slashtcr(input)
     local action, arg1, arg2 = self:GetArgs(input, 3)
 
     --[[SCAN]]--

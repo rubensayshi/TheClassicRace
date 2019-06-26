@@ -5,10 +5,15 @@ This is a WoW addon
 This is a work in progress, it's not usable yet and I'm also rewriting the git repo history whenever I feel like xD
 
 ## Dev Setup
-```
-# make sure you have `luarocks` and `busted` installed
-
+```bash
+# make sure you have `luarocks`, `luacov` and `busted` installed, you can install them easily with:
 make setup-dev
+```
+
+## Libs
+WoW Addon libs is a mess ... you can fetch them with:
+```bash
+make libs
 ```
 
 ## Testing
@@ -29,8 +34,3 @@ and we generally pass components to other components that depend on them at init
 The only `TheClassicRace.` or `TheClassicRace:` access should be for `Config` and the `*Print` methods.
 
 For some decoupling we can use the `EventBus` to propagate events as well...
- 
-## Libs Names
-To be able to load the libs in the tests we need to `require` them, which doesn't work when there's a `.` in in the filenames,
-so we had to rename all libs (both folder and files) from `-3.0` to `-3dot0` or omit the version all together.  
-We do still use the `-3.0` suffix in the code to load them through `LibStub` so inside WoW everything still works the same.
