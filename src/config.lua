@@ -9,8 +9,12 @@ TheClassicRace.Colors = TheClassicRaceColors
 
 ---@class TheClassicRaceConfig
 local TheClassicRaceConfig = {
+    Debug = false,
+    Trace = false,
+    --@debug@
     Debug = true,
     Trace = true,
+    --@end-debug@
 
     MaxLevel = 60,
     LeaderboardSize = 50,

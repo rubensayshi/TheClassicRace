@@ -60,6 +60,4 @@ fetch-libs: download-bw-release
 #
 release: download-bw-release
 	rm -rf ./.release
-	./bw-release.sh -d -u -l -z   # dry-run release, so we can mutate it afterwards
-	sed -i 's/src\\dev.lua//g' ./.release/TheClassicRace/TheClassicRace.toc  # take out dev.lua from release .toc
-	./bw-release.sh -o -c -u -l -e $(RELEASEARGS)  # release without copy, reusing our previous done work
+	./bw-release.sh -u -l $(RELEASEARGS)
