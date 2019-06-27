@@ -12,11 +12,19 @@ function Frame.new()
     return self
 end
 
+function Frame:Hide()
+
+end
+
 function Frame:SetScript(type, callback)
 
 end
 
 function Frame:RegisterEvent(type, callback)
+
+end
+
+function Frame:UnregisterAllEvents()
 
 end
 

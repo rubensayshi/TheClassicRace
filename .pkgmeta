@@ -1,9 +1,9 @@
 externals:
     libs/LibStub: svn://svn.wowace.com/wow/libstub/mainline/trunk
     libs/CallbackHandler: svn://svn.wowace.com/wow/callbackhandler/mainline/trunk/CallbackHandler-1.0
-    libs/ChatThrottleLib: svn://svn.wowace.com/wow/chatthrottlelib/mainline/trunk
     libs/AceAddon: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceAddon-3.0
     libs/AceConsole: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceConsole-3.0
+    libs/AceComm: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceComm-3.0
     libs/AceDB: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceDB-3.0
     libs/AceGUI: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceGUI-3.0
     libs/AceSerializer: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceSerializer-3.0
