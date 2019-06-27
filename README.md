@@ -1,8 +1,7 @@
 # WoW Addon: The Classic Race
-This is a WoW addon
+This is a WoW addon to keep track of the top 50 players on your realm in the race to lvl60!
 
-## Work In Progress
-This is a work in progress, it's not usable yet and I'm also rewriting the git repo history whenever I feel like xD
+[![Coverage Status](https://coveralls.io/repos/github/rubensayshi/TheClassicRace/badge.svg)](https://coveralls.io/github/rubensayshi/TheClassicRace)
 
 ## Dev Setup
 ```bash
