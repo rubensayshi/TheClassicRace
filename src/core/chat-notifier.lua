@@ -6,6 +6,7 @@ ChatNotifier is responsible for notifying the user about events through the chat
 based on events from the EventBus
 ]]--
 ---@class TheClassicRaceChatNotifier
+---@field Config TheClassicRaceConfig
 ---@field Core TheClassicRaceCore
 ---@field EventBus TheClassicRaceEventBus
 local TheClassicRaceChatNotifier = {}
@@ -26,6 +27,7 @@ function TheClassicRaceChatNotifier.new(Config, Core, EventBus)
 
     -- subscribe to local events
     EventBus:RegisterCallback(self.Config.Events.Ding, self, self.OnDing)
+    EventBus:RegisterCallback(self.Config.Events.RaceFinished, self, self.OnRaceFinished)
 
     return self
 end
@@ -46,4 +48,8 @@ function TheClassicRaceChatNotifier:OnDing(playerInfo, rank)
                     "Currently rank #" .. rank .. " in the race!")
         end
     end
+end
+
+function TheClassicRaceChatNotifier:OnRaceFinished()
+    TheClassicRace:PPrint("More than " .. self.Config.LeaderboardSize .. " players have reached max level, the race is over!")
 end

@@ -77,6 +77,11 @@ function TheClassicRaceUpdater:ProcessWhoResult(result)
 end
 
 function TheClassicRaceUpdater:InitTicker()
+    -- don't setup ticker when we know the race has finished
+    if self.DB.realm.finished then
+        return
+    end
+
     if self.Ticker ~= nil then
         return
     end
@@ -87,6 +92,11 @@ function TheClassicRaceUpdater:InitTicker()
 end
 
 function TheClassicRaceUpdater:StartScan()
+    -- don't scan when we know the race has finished
+    if self.DB.realm.finished then
+        return
+    end
+
     -- we don't start another scan when the queue isn't empty yet
     if not LibWho:AllQueuesEmpty() then
         TheClassicRace:DebugPrint("StartScan but LibWho not ready")

@@ -7,6 +7,7 @@ to us through the EventBus.
 ]]--
 ---@class TheClassicRaceTracker
 ---@field DB table<string, table>
+---@field Config TheClassicRaceConfig
 ---@field Core TheClassicRaceCore
 ---@field EventBus TheClassicRaceEventBus
 ---@field Network TheClassicRaceNetwork
@@ -35,11 +36,17 @@ function TheClassicRaceTracker.new(Config, Core, DB, EventBus, Network)
     EventBus:RegisterCallback(self.Config.Network.Events.RequestUpdate, self, self.OnRequestUpdate)
     -- subscribe to local events
     EventBus:RegisterCallback(self.Config.Events.SlashWhoResult, self, self.OnSlashWhoResult)
+    EventBus:RegisterCallback(self.Config.Events.ScanFinished, self, self.OnScanFinished)
 
     return self
 end
 
 function TheClassicRaceTracker:RequestUpdate()
+    -- don't request updates when we know the race has finished
+    if self.DB.realm.finished then
+        return
+    end
+
     -- request update over guild and channel
     self.Network:SendObject(self.Config.Network.Events.RequestUpdate, {}, "GUILD")
     self.Network:SendObject(self.Config.Network.Events.RequestUpdate, {}, "CHANNEL")
@@ -83,6 +90,21 @@ function TheClassicRaceTracker:OnRequestUpdate(_, sender)
     }, "WHISPER", sender)
 end
 
+function TheClassicRaceTracker:OnScanFinished(complete)
+    -- if a scan finished but the result wasn't complete then we have too many max level players
+    if not complete then
+        self:RaceFinished()
+    end
+end
+
+function TheClassicRaceTracker:RaceFinished()
+    if not self.DB.realm.finished then
+        self.DB.realm.finished = true
+
+        self.EventBus:PublishEvent(self.Config.Events.RaceFinished)
+    end
+end
+
 function TheClassicRaceTracker:OnPlayerInfo(playerInfo)
     self:HandlePlayerInfo({
         name = playerInfo[1],
@@ -99,6 +121,11 @@ end
 HandlePlayerInfo updates the leaderboard and triggers notifications accordingly
 ]]--
 function TheClassicRaceTracker:HandlePlayerInfo(playerInfo, shouldBroadcast)
+    -- don't process more player info when we know the race has finished
+    if self.DB.realm.finished then
+        return
+    end
+
     TheClassicRace:DebugPrint("HandlePlayerInfo: " .. playerInfo.name .. " lvl" .. playerInfo.level)
     -- ignore players below our lower bound threshold
     if playerInfo.level < self.DB.realm.levelThreshold then
@@ -180,7 +207,11 @@ function TheClassicRaceTracker:HandlePlayerInfo(playerInfo, shouldBroadcast)
     self.DB.realm.highestLevel = math.max(self.DB.realm.highestLevel, playerInfo.level)
 
     -- we only care about levels >= our bottom ranked on the leaderboard
-    if  #self.DB.realm.leaderboard >= self.Config.LeaderboardSize then
+    if #self.DB.realm.leaderboard >= self.Config.LeaderboardSize then
         self.DB.realm.levelThreshold = self.DB.realm.leaderboard[#self.DB.realm.leaderboard].level
+
+        if self.DB.realm.levelThreshold == self.Config.MaxLevel then
+            self:RaceFinished()
+        end
     end
 end

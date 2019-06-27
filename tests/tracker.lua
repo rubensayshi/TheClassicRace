@@ -1,6 +1,9 @@
 -- load test base
 local TheClassicRace = require("testbase")
 
+-- aliases
+local Events = TheClassicRace.Config.Events
+
 function mergeConfigs(...)
     local config = {}
     for _, c in pairs({...}) do
@@ -209,6 +212,20 @@ describe("Tracker", function()
 
             assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.PlayerInfo,
                     {"Nub1", 5, dingedAt}, "WHISPER", "Roobs")
+        end)
+    end)
+
+    describe("RaceFinished", function()
+        it("produces RaceFinished event once", function()
+            local eventBusSpy = spy.on(eventbus, "PublishEvent")
+
+            tracker:OnScanFinished(true)
+            assert.spy(eventBusSpy).called_at_most(0)
+
+            tracker:OnScanFinished(false)
+            tracker:OnScanFinished(false)
+            assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), Events.RaceFinished)
+            assert.spy(eventBusSpy).called_at_most(1)
         end)
     end)
 end)

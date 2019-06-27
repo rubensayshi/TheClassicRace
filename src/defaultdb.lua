@@ -6,6 +6,7 @@ local TheClassicRaceDefaultDB = {
         top = 50,
     },
     realm = {
+        finished = false,
         levelThreshold = 2,
         highestLevel = 1,
         leaderboard = {},

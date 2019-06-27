@@ -32,6 +32,8 @@ local TheClassicRaceConfig = {
     Events = {
         SlashWhoResult = "TCRACE_WHO_RESULT",
         Ding = "TCRACE_DING",
+        ScanFinished = "TCRACE_SCAN_FINISHED",
+        RaceFinished = "TCRACE_RACE_FINISHED",
     },
 }
 TheClassicRace.Config = TheClassicRaceConfig

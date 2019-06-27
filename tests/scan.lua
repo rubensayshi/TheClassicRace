@@ -8,6 +8,9 @@ And an :Assert to assert that all expected calls were consumed
 ]]--
 local LibWhoMock = require("stubs.libwhomock")
 
+-- aliases
+local Events = TheClassicRace.Config.Events
+
 describe("Scan", function()
     local db
     ---@type TheClassicRaceCore
@@ -34,6 +37,8 @@ describe("Scan", function()
     end)
 
     it("basic lvl13", function()
+        local eventBusSpy = spy.on(eventbus, "PublishEvent")
+
         libWhoMock:ExpectWho(1, 60, false, {{Name = "Leader", Level = 13}})
         libWhoMock:ExpectWho(30, 60, true, {})
         libWhoMock:ExpectWho(15, 60, true, {})
@@ -45,12 +50,16 @@ describe("Scan", function()
         scan:Start()
         assert.equals(true, scan:IsDone())
         libWhoMock:Assert()
+        assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), Events.ScanFinished, true)
+        assert.spy(eventBusSpy).called_at_most(1)
     end)
 
     it("shortcuts lvl13", function()
         --[[
         Should stop scanning when the first results > 0 and complete = true is found
         ]]--
+        local eventBusSpy = spy.on(eventbus, "PublishEvent")
+
         libWhoMock:ExpectWho(1, 60, false, {{Name = "Leader", Level = 13}})
         libWhoMock:ExpectWho(30, 60, true, {})
         libWhoMock:ExpectWho(15, 60, true, {})
@@ -59,9 +68,13 @@ describe("Scan", function()
         scan:Start()
         assert.equals(true, scan:IsDone())
         libWhoMock:Assert()
+        assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), Events.ScanFinished, true)
+        assert.spy(eventBusSpy).called_at_most(1)
     end)
 
     it("basic lvl42", function()
+        local eventBusSpy = spy.on(eventbus, "PublishEvent")
+
         libWhoMock:ExpectWho(1, 60, false, {{Name = "Leader", Level = 42}})
         libWhoMock:ExpectWho(30, 60, false, {{Name = "Leader", Level = 42}})
         libWhoMock:ExpectWho(45, 60, true, {})
@@ -71,12 +84,16 @@ describe("Scan", function()
         scan:Start()
         assert.equals(true, scan:IsDone())
         libWhoMock:Assert()
+        assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), Events.ScanFinished, true)
+        assert.spy(eventBusSpy).called_at_most(1)
     end)
 
     it("shortcuts lvl42", function()
         --[[
         Should stop scanning when the first results > 0 and complete = true is found
         ]]--
+        local eventBusSpy = spy.on(eventbus, "PublishEvent")
+
         libWhoMock:ExpectWho(1, 60, false, {{Name = "Leader", Level = 42}})
         libWhoMock:ExpectWho(30, 60, false, {{Name = "Leader", Level = 42}})
         libWhoMock:ExpectWho(45, 60, true, {})
@@ -85,9 +102,13 @@ describe("Scan", function()
         scan:Start()
         assert.equals(true, scan:IsDone())
         libWhoMock:Assert()
+        assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), Events.ScanFinished, true)
+        assert.spy(eventBusSpy).called_at_most(1)
     end)
 
     it("basic lvl42 with min", function()
+        local eventBusSpy = spy.on(eventbus, "PublishEvent")
+
         scan:SetMin(41)
 
         libWhoMock:ExpectWho(41, 60, false, {{Name = "Leader", Level = 42}})
@@ -99,6 +120,8 @@ describe("Scan", function()
         scan:Start()
         assert.equals(true, scan:IsDone())
         libWhoMock:Assert()
+        assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), Events.ScanFinished, true)
+        assert.spy(eventBusSpy).called_at_most(1)
     end)
 
     it("shortcuts lvl42 with min", function()
@@ -106,6 +129,8 @@ describe("Scan", function()
         Should stop scanning when the first results > 0 and complete = true is found,
         also when that occurs with the initial (min, max) scan from :SetMin()
         ]]--
+        local eventBusSpy = spy.on(eventbus, "PublishEvent")
+
         scan:SetMin(41)
 
         libWhoMock:ExpectWho(41, 60, true, {{Name = "Leader", Level = 42}})
@@ -113,6 +138,8 @@ describe("Scan", function()
         scan:Start()
         assert.equals(true, scan:IsDone())
         libWhoMock:Assert()
+        assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), Events.ScanFinished, true)
+        assert.spy(eventBusSpy).called_at_most(1)
     end)
 
     it("too many max lvl", function()
@@ -120,6 +147,8 @@ describe("Scan", function()
         Should know when there's too many 60s to find a leader
         @TODO: we should handle this case so that the user knows and set levelThreshold to avoid scanning forever and ever
         ]]--
+        local eventBusSpy = spy.on(eventbus, "PublishEvent")
+
         libWhoMock:ExpectWho(1, 60, false, {{Name = "Leader", Level = 60}})
         libWhoMock:ExpectWho(30, 60, false, {{Name = "Leader", Level = 60}})
         libWhoMock:ExpectWho(45, 60, false, {{Name = "Leader", Level = 60}})
@@ -131,12 +160,16 @@ describe("Scan", function()
         scan:Start()
         assert.equals(true, scan:IsDone())
         libWhoMock:Assert()
+        assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), Events.ScanFinished, false)
+        assert.spy(eventBusSpy).called_at_most(1)
     end)
 
     it("too many max lvl with min", function()
         --[[
         Should know when there's too many 60s to find a leader
         ]]--
+        local eventBusSpy = spy.on(eventbus, "PublishEvent")
+
         scan:SetMin(41)
 
         libWhoMock:ExpectWho(41, 60, false, {{Name = "Leader", Level = 60}})
@@ -149,5 +182,7 @@ describe("Scan", function()
         scan:Start()
         assert.equals(true, scan:IsDone())
         libWhoMock:Assert()
+        assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), Events.ScanFinished, false)
+        assert.spy(eventBusSpy).called_at_most(1)
     end)
 end)
