@@ -7,7 +7,7 @@ addons:
       - pandoc  # contains jq
 
 env:
-  - LUA="lua 5.3"
+  - LUA="lua 5.3" UPLOADRELEASE="y"
 
 before_install:
   - pip install hererocks

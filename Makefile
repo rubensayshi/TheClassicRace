@@ -3,8 +3,11 @@
 TESTS ?= .*
 INCLUDES ?= tests/* tests/*/*
 
-CLASSIC_INTERFACE = 11302
-CLASSIC_VERSION = 1.13.2
+ifneq ($(UPLOADRELEASE),)
+RELEASEARGS ?=
+else
+RELEASEARGS ?= -d
+endif
 
 setup-dev:
 	luarocks install luacheck
@@ -48,7 +51,7 @@ libs:
 #
 fetch-libs: download-bw-release
 	rm -rf ./libs
-	./bw-release.sh -d -u -l -z -g $(CLASSIC_VERSION)
+	./bw-release.sh -d -u -l -z
 	cp -rf ./.release/TheClassicRace/libs ./libs
 
 #
@@ -57,6 +60,6 @@ fetch-libs: download-bw-release
 #
 release: download-bw-release
 	rm -rf ./.release
-	./bw-release.sh -d -u -l -z -g $(CLASSIC_VERSION)   # dry-run release, so we can mutate it afterwards
-	sed -i '' 's/src\\dev.lua//g' ./.release/TheClassicRace/TheClassicRace.toc  # take out dev.lua from release .toc
-	./bw-release.sh -o -c -u -l -e -d -g $(CLASSIC_VERSION)  # release without copy, reusing our previous done work
+	./bw-release.sh -d -u -l -z   # dry-run release, so we can mutate it afterwards
+	sed -i 's/src\\dev.lua//g' ./.release/TheClassicRace/TheClassicRace.toc  # take out dev.lua from release .toc
+	./bw-release.sh -o -c -u -l -e $(RELEASEARGS)  # release without copy, reusing our previous done work
