@@ -42,6 +42,11 @@ describe("Tracker", function()
         tracker = TheClassicRace.Tracker(config, core, db, eventbus, network)
     end)
 
+    after_each(function()
+        -- reset any mocking of IsInGuild we did
+        _G.SetIsInGuild(nil)
+    end)
+
     describe("leaderboard", function()
         it("adds players", function()
             tracker:HandlePlayerInfo({name = "Nub1", level = 5}, false)
@@ -165,6 +170,17 @@ describe("Tracker", function()
             assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.PlayerInfo,
                     match.is_table(), "GUILD")
         end)
+
+        it("should broadcast to network OnSlashWhoResult, not to guild when not in guild", function()
+            local networkSpy = spy.on(network, "SendObject")
+
+            _G.SetIsInGuild(false)
+
+            tracker:OnSlashWhoResult({name = "Nub1", level = 5})
+            assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.PlayerInfo,
+                    match.is_table(), "CHANNEL")
+            assert.spy(networkSpy).called_at_most(1)
+        end)
     end)
 
     describe("RequestUpdate", function()
@@ -177,6 +193,18 @@ describe("Tracker", function()
                     match.is_table(), "CHANNEL")
             assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.RequestUpdate,
                     match.is_table(), "GUILD")
+        end)
+
+        it("sends request, not to guild when not in guild", function()
+            local networkSpy = spy.on(network, "SendObject")
+
+            _G.SetIsInGuild(false)
+
+            tracker:RequestUpdate()
+
+            assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.RequestUpdate,
+                    match.is_table(), "CHANNEL")
+            assert.spy(networkSpy).called_at_most(1)
         end)
 
         it("responds to request", function()

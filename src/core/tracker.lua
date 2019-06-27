@@ -1,6 +1,9 @@
 -- Addon global
 local TheClassicRace = _G.TheClassicRace
 
+-- WoW API
+local IsInGuild = _G.IsInGuild
+
 --[[
 Tracker is responsible for maintaining our leaderboard data based on data provided by other parts of the system
 to us through the EventBus.
@@ -48,8 +51,10 @@ function TheClassicRaceTracker:RequestUpdate()
     end
 
     -- request update over guild and channel
-    self.Network:SendObject(self.Config.Network.Events.RequestUpdate, {}, "GUILD")
     self.Network:SendObject(self.Config.Network.Events.RequestUpdate, {}, "CHANNEL")
+    if IsInGuild() then
+        self.Network:SendObject(self.Config.Network.Events.RequestUpdate, {}, "GUILD")
+    end
 end
 
 function TheClassicRaceTracker:OnRequestUpdate(_, sender)
@@ -194,8 +199,10 @@ function TheClassicRaceTracker:HandlePlayerInfo(playerInfo, shouldBroadcast)
     if shouldBroadcast then
         self.Network:SendObject(self.Config.Network.Events.PlayerInfo,
                 { playerInfo.name, playerInfo.level, dingedAt }, "CHANNEL")
-        self.Network:SendObject(self.Config.Network.Events.PlayerInfo,
-                { playerInfo.name, playerInfo.level, dingedAt }, "GUILD")
+        if IsInGuild() then
+            self.Network:SendObject(self.Config.Network.Events.PlayerInfo,
+                    { playerInfo.name, playerInfo.level, dingedAt }, "GUILD")
+        end
     end
 
     -- publish internal event

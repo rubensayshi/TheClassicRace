@@ -18,6 +18,19 @@ _G.UnitFactionGroup = function()
     return "Alliance"
 end
 
+local defaultIsInGuild = true
+local isInGuild = defaultIsInGuild
+_G.IsInGuild = function()
+    return isInGuild
+end
+
+_G.SetIsInGuild = function(_isInGuild)
+    if _isInGuild == nil then
+        _isInGuild = defaultIsInGuild
+    end
+    isInGuild = _isInGuild
+end
+
 _G.GetLocale = function()
     return "enUS"
 end
@@ -35,18 +48,26 @@ _G.UnitFullName = function(target)
     end
 end
 
-local realZoneText = "Ironforge"
-_G.SetRealZoneText = function(zoneText)
-    realZoneText = zoneText
+local defaultRealZoneText = "Ironforge"
+local realZoneText = defaultRealZoneText
+_G.SetRealZoneText = function(_realZoneText)
+    if _realZoneText == nil then
+        _realZoneText = defaultRealZoneText
+    end
+    realZoneText = _realZoneText
 end
 
 _G.GetRealZoneText = function()
     return realZoneText
 end
 
-local numGroupMembers = 0
-_G.SetNumGroupMembers = function(i)
-    numGroupMembers = i
+local defaultNumGroupMembers = 0
+local numGroupMembers = defaultNumGroupMembers
+_G.SetNumGroupMembers = function(_numGroupMembers)
+    if _numGroupMembers == nil then
+        _numGroupMembers = defaultNumGroupMembers
+    end
+    numGroupMembers = _numGroupMembers
 end
 
 _G.GetNumGroupMembers = function()
