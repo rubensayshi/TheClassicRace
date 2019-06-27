@@ -1,12 +1,12 @@
-## Interface: 80100
+## Interface: 11302
 ## Title: TheClassicRace
 ## Author: Rubensayshi
 ## Version: @project-version@
-## Notes: The Classic Race
+## Notes: Keep track of the top 50 players in the race to lvl60.
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## SavedVariables: TheClassicRace_DB
-
+## X-Curse-Project-ID: 325388
 libs.xml
 
 src\main.lua
