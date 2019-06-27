@@ -6,7 +6,7 @@ local LibStub = _G.LibStub
 local LibWho = LibStub("LibWho-2.0")
 
 -- WoW API
-local C_Timer = _G.C_Timer
+local C_Timer, CreateFrame = _G.C_Timer, _G.CreateFrame
 
 --[[
 Updater is responsible for periodically doing a Scan to get updated results
@@ -48,7 +48,28 @@ function TheClassicRaceUpdater.new(Core, DB, EventBus)
         end
     end)
 
+    -- create a Frame to use as thread to receive events on
+    self.Thread = CreateFrame("Frame")
+    self.Thread:Hide()
+    self.Thread:SetScript("OnEvent", function(_, event, ...)
+        if (event == "PLAYER_LEVEL_UP") then
+            self:OnPlayerLevelUp(...)
+        end
+    end)
+
+    -- register for level up events
+    self.Thread:RegisterEvent("PLAYER_LEVEL_UP")
+
     return self
+end
+function TheClassicRaceUpdater:OnPlayerLevelUp(level)
+    TheClassicRace:DebugPrint("OnPlayerLevelUp(" .. tostring(level) .. ")")
+
+    -- we fake an /who result
+    self.EventBus:PublishEvent(TheClassicRace.Config.Events.SlashWhoResult, {
+        name = self.Core:Me(),
+        level = level,
+    })
 end
 
 function TheClassicRaceUpdater:ProcessWhoResult(result)

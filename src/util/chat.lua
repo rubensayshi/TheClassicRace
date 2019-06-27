@@ -43,8 +43,12 @@ function TheClassicRace:DebugPrintTable(t)
     end
 end
 
-function TheClassicRace:PlayerChatLink(playerName)
+function TheClassicRace:PlayerChatLink(playerName, linkTitle)
+    if linkTitle == nil then
+        linkTitle = playerName
+    end
+
     return TheClassicRace.Colors.SYSTEM_EVENT_YELLOW ..
-        "|Hplayer:" .. playerName .. "|h[" .. playerName .. "]|h" ..
+        "|Hplayer:" .. playerName .. "|h[" .. linkTitle .. "]|h" ..
         TheClassicRace.Colors.WHITE
 end

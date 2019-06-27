@@ -33,6 +33,31 @@ function TheClassicRaceChatNotifier.new(Config, Core, EventBus)
 end
 
 function TheClassicRaceChatNotifier:OnDing(playerInfo, rank)
+    if playerInfo.name == self.Core:Me() then
+        self:OnSelfDing(playerInfo, rank)
+    else
+        self:OnStrangerDing(playerInfo, rank)
+    end
+end
+
+function TheClassicRaceChatNotifier:OnSelfDing(playerInfo, rank)
+    if rank == 1 then
+        if playerInfo.level == self.Config.MaxLevel then
+            TheClassicRace:PPrint("Gratz! The race is over! " .. TheClassicRace:PlayerChatLink(playerInfo.name, "You") .. " are the first to reach max level!!")
+        else
+            TheClassicRace:PPrint("Gratz! " .. TheClassicRace:PlayerChatLink(playerInfo.name, "You") .. " are first to reach level " .. playerInfo.level .. "!")
+        end
+    else
+        if playerInfo.level == self.Config.MaxLevel then
+            TheClassicRace:PPrint("Gratz!  " .. TheClassicRace:PlayerChatLink(playerInfo.name, "You") .. " reached max level as #" .. rank .. "!")
+        else
+            TheClassicRace:PPrint("Gratz! " .. TheClassicRace:PlayerChatLink(playerInfo.name, "You") .. " reached level " .. playerInfo.level .. "! " ..
+                    "Currently rank #" .. rank .. " in the race!")
+        end
+    end
+end
+
+function TheClassicRaceChatNotifier:OnStrangerDing(playerInfo, rank)
     if rank == 1 then
         if playerInfo.level == self.Config.MaxLevel then
             TheClassicRace:PPrint("The race is over! Gratz to " .. TheClassicRace:PlayerChatLink(playerInfo.name) .. ", first to reach max level!!")
