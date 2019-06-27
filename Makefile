@@ -43,7 +43,7 @@ download-bw-release:
 # to fetch libs we use bw-release.sh dryrun and then copy from the .release folder
 #
 libs:
-	test -f libs || make fetch-libs
+	test -d ./libs || make fetch-libs
 
 #
 # -- libs --
