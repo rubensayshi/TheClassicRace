@@ -1,4 +1,4 @@
-﻿-- Libs
+-- Libs
 local LibStub = _G.LibStub
 
 -- Addon global
@@ -27,6 +27,7 @@ TheClassicRace = LibStub("AceAddon-3.0"):NewAddon("TheClassicRace", "AceConsole-
 function TheClassicRace:OnInitialize()
     self.DB = LibStub("AceDB-3.0"):New("TheClassicRace_DB", TheClassicRace.DefaultDB, true)
 
+    self:RegisterOptions()
     self:RegisterChatCommand("tcr", "slashtcr")
 
     -- determine who we are
@@ -38,7 +39,7 @@ function TheClassicRace:OnInitialize()
     self.Network = TheClassicRace.Network(self.Core, self.EventBus)
     self.Updater = TheClassicRace.Updater(self.Core, self.DB, self.EventBus, who)
     self.Tracker = TheClassicRace.Tracker(TheClassicRace.Config, self.Core, self.DB, self.EventBus, self.Network)
-    self.ChatNotifier = TheClassicRace.ChatNotifier(TheClassicRace.Config, self.Core, self.EventBus)
+    self.ChatNotifier = TheClassicRace.ChatNotifier(TheClassicRace.Config, self.Core, self.DB, self.EventBus)
     self.StatusFrame = TheClassicRace.StatusFrame(TheClassicRace.Config, self.Core, self.DB, self.EventBus)
 
     self:DebugPrint("me: " .. self.Core:RealMe())

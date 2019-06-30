@@ -49,6 +49,10 @@ function TheClassicRaceTracker:RequestUpdate()
     if self.DB.realm.finished then
         return
     end
+    -- don't request updates when we've disabled networking
+    if not self.DB.profile.options.networking then
+        return
+    end
 
     -- request update over guild and channel
     self.Network:SendObject(self.Config.Network.Events.RequestUpdate, {}, "CHANNEL")
@@ -58,6 +62,10 @@ function TheClassicRaceTracker:RequestUpdate()
 end
 
 function TheClassicRaceTracker:OnRequestUpdate(_, sender)
+    -- don't respond to update requests when we've disabled networking
+    if not self.DB.profile.options.networking then
+        return
+    end
     TheClassicRace:DebugPrint("Update Requested")
 
     -- if we don't know a leader yet then we can't respond
@@ -196,7 +204,7 @@ function TheClassicRaceTracker:HandlePlayerInfo(playerInfo, shouldBroadcast)
     end
 
     -- broadcast
-    if shouldBroadcast then
+    if shouldBroadcast and self.DB.profile.options.networking then
         self.Network:SendObject(self.Config.Network.Events.PlayerInfo,
                 { playerInfo.name, playerInfo.level, dingedAt }, "CHANNEL")
         if IsInGuild() then

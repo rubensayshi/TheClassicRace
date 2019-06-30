@@ -3,10 +3,12 @@ externals:
     libs/CallbackHandler: svn://svn.wowace.com/wow/callbackhandler/mainline/trunk/CallbackHandler-1.0
     libs/AceAddon: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceAddon-3.0
     libs/AceConsole: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceConsole-3.0
+    libs/AceConfig: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceConfig-3.0
     libs/AceComm: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceComm-3.0
     libs/AceDB: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceDB-3.0
     libs/AceGUI: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceGUI-3.0
     libs/AceSerializer: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceSerializer-3.0
+    libs/LibDBIcon: https://repos.wowace.com/wow/libdbicon-1-0/trunk/LibDBIcon-1.0
     libs/LibWho: svn://svn.wowace.com/wow/wholib/mainline/trunk
 
 ignore:

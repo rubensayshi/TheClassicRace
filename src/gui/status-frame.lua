@@ -42,6 +42,10 @@ function TheClassicRaceStatusFrame.new(Config, Core, DB, EventBus)
 end
 
 function TheClassicRaceStatusFrame:OnDing()
+    self:Refresh()
+end
+
+function TheClassicRaceStatusFrame:Refresh()
     if self.frame ~= nil and self.contentframe ~= nil then
         self:Render()
     end

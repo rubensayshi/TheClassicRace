@@ -3,7 +3,13 @@ local TheClassicRace = _G.TheClassicRace
 ---@class TheClassicRaceDefaultDB
 local TheClassicRaceDefaultDB = {
     profile = {
-        top = 50,
+        options = {
+            minimap = {
+                hide = false,
+            },
+            networking = true,
+            notifications = true,
+        },
     },
     realm = {
         finished = false,

@@ -22,6 +22,9 @@ local TheClassicRaceConfig = {
     -- RequestUpdate throttle time window
     Throttle = 60,
 
+    AceConfig = "The Classic Race",
+    LDB = "TheClassicRace",
+
     Network = {
         Prefix = "TCRace",
         Channel = {

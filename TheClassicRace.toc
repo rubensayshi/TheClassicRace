@@ -15,6 +15,7 @@ src\dev.lua
 #@end-debug@
 src\config.lua
 src\defaultdb.lua
+src\options.lua
 src\util\util.lua
 src\util\list-helpers.lua
 src\util\table-helpers.lua

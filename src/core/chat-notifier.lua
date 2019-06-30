@@ -18,11 +18,12 @@ setmetatable(TheClassicRaceChatNotifier, {
     end,
 })
 
-function TheClassicRaceChatNotifier.new(Config, Core, EventBus)
+function TheClassicRaceChatNotifier.new(Config, Core, DB, EventBus)
     local self = setmetatable({}, TheClassicRaceChatNotifier)
 
     self.Config = Config
     self.Core = Core
+    self.DB = DB
     self.EventBus = EventBus
 
     -- subscribe to local events
@@ -33,6 +34,10 @@ function TheClassicRaceChatNotifier.new(Config, Core, EventBus)
 end
 
 function TheClassicRaceChatNotifier:OnDing(playerInfo, rank)
+    if not self.DB.profile.options.notifications then
+        return
+    end
+
     if playerInfo.name == self.Core:Me() then
         self:OnSelfDing(playerInfo, rank)
     else
