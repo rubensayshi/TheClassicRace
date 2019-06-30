@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#set -ex
 
 # release.sh generates a zippable addon directory from a Git or SVN checkout.
 #
@@ -47,6 +48,18 @@ if [ -n "$TRAVIS" ]; then
 			exit 0
 		fi
 	fi
+fi
+
+if [[ "`uname`" == "Darwin" ]]; then
+    if [[ "`which ghead`" == "" ]]; then
+        echo "No ghead, brew install coreutils"; exit 1;
+    else
+        DATE=gdate
+        DATEUD="gdate -ud"
+    fi
+else
+    DATE=date
+    DATEUD=date -ud
 fi
 
 # Script return code
@@ -294,8 +307,8 @@ set_info_git() {
 	si_project_abbreviated_hash=$( git -C "$si_repo_dir" show --no-patch --format="%h" 2>/dev/null )
 	si_project_author=$( git -C "$si_repo_dir" show --no-patch --format="%an" 2>/dev/null )
 	si_project_timestamp=$( git -C "$si_repo_dir" show --no-patch --format="%at" 2>/dev/null )
-	si_project_date_iso=$( date -ud "@$si_project_timestamp" -Iseconds 2>/dev/null | sed 's/+00:00/Z/' )
-	si_project_date_integer=$( date -ud "@$si_project_timestamp" +%Y%m%d%H%M%S 2>/dev/null )
+	si_project_date_iso=$( $DATEUD "@$si_project_timestamp" -Iseconds 2>/dev/null | sed 's/+00:00/Z/' )
+	si_project_date_integer=$( $DATEUD "@$si_project_timestamp" +%Y%m%d%H%M%S 2>/dev/null )
 	# XXX --depth limits rev-list :\ [ ! -s "$(git rev-parse --git-dir)/shallow" ] || git fetch --unshallow --no-tags
 	si_project_revision=$( git -C "$si_repo_dir" rev-list --count $si_project_hash 2>/dev/null )
 
@@ -375,9 +388,9 @@ set_info_svn() {
 		# Populate filter vars.
 		si_project_author=$( awk '/^Last Changed Author:/ { print $0; exit }' < "$_si_svninfo" | cut -d" " -f4- )
 		_si_timestamp=$( awk '/^Last Changed Date:/ { print $4,$5,$6; exit }' < "$_si_svninfo" )
-		si_project_timestamp=$( date -ud "$_si_timestamp" +%s 2>/dev/null )
-		si_project_date_iso=$( date -ud "$_si_timestamp" -Iseconds 2>/dev/null | sed 's/+00:00/Z/' )
-		si_project_date_integer=$( date -ud "$_si_timestamp" +%Y%m%d%H%M%S 2>/dev/null )
+		si_project_timestamp=$( $DATEUD "$_si_timestamp" +%s 2>/dev/null )
+		si_project_date_iso=$( $DATEUD "$_si_timestamp" -Iseconds 2>/dev/null | sed 's/+00:00/Z/' )
+		si_project_date_integer=$( $DATEUD "$_si_timestamp" +%Y%m%d%H%M%S 2>/dev/null )
 		# SVN repositories have no project hash.
 		si_project_hash=
 		si_project_abbreviated_hash=
@@ -399,8 +412,8 @@ set_info_hg() {
 	si_project_abbreviated_hash=$( hg --cwd "$si_repo_dir" log -r . --template '{node|short}' 2>/dev/null )
 	si_project_author=$( hg --cwd "$si_repo_dir" log -r . --template '{author}' 2>/dev/null )
 	si_project_timestamp=$( hg --cwd "$si_repo_dir" log -r . --template '{date}' 2>/dev/null | cut -d. -f1 )
-	si_project_date_iso=$( date -ud "@$si_project_timestamp" -Iseconds 2>/dev/null | sed 's/+00:00/Z/' )
-	si_project_date_integer=$( date -ud "@$si_project_timestamp" +%Y%m%d%H%M%S 2>/dev/null )
+	si_project_date_iso=$( $DATEUD "@$si_project_timestamp" -Iseconds 2>/dev/null | sed 's/+00:00/Z/' )
+	si_project_date_integer=$( $DATEUD "@$si_project_timestamp" +%Y%m%d%H%M%S 2>/dev/null )
 	si_project_revision=$( hg --cwd "$si_repo_dir" log -r . --template '{rev}' 2>/dev/null )
 
 	# Get tag info
@@ -431,8 +444,8 @@ set_info_file() {
 		si_file_abbreviated_hash=$( git -C "$si_repo_dir" log --max-count=1  --format="%h"  "$_si_file" 2>/dev/null )
 		si_file_author=$( git -C "$si_repo_dir" log --max-count=1 --format="%an" "$_si_file" 2>/dev/null )
 		si_file_timestamp=$( git -C "$si_repo_dir" log --max-count=1 --format="%at" "$_si_file" 2>/dev/null )
-		si_file_date_iso=$( date -ud "@$si_file_timestamp" -Iseconds 2>/dev/null | sed 's/+00:00/Z/' )
-		si_file_date_integer=$( date -ud "@$si_file_timestamp" +%Y%m%d%H%M%S 2>/dev/null )
+		si_file_date_iso=$( $DATEUD "@$si_file_timestamp" -Iseconds 2>/dev/null | sed 's/+00:00/Z/' )
+		si_file_date_integer=$( $DATEUD "@$si_file_timestamp" +%Y%m%d%H%M%S 2>/dev/null )
 		si_file_revision=$( git -C "$si_repo_dir" rev-list --count $si_file_hash 2>/dev/null ) # XXX checkout depth affects rev-list, see set_info_git
 	elif [ "$si_repo_type" = "svn" ]; then
 		_si_file="$1"
@@ -444,9 +457,9 @@ set_info_file() {
 			si_file_revision=$( awk '/^Last Changed Rev:/ { print $NF; exit }' < "$_sif_svninfo" )
 			si_file_author=$( awk '/^Last Changed Author:/ { print $0; exit }' < "$_sif_svninfo" | cut -d" " -f4- )
 			_si_timestamp=$( awk '/^Last Changed Date:/ { print $4,$5,$6; exit }' < "$_sif_svninfo" )
-			si_file_timestamp=$( date -ud "$_si_timestamp" +%s 2>/dev/null )
-			si_file_date_iso=$( date -ud "$_si_timestamp" -Iseconds 2>/dev/null | sed 's/+00:00/Z/' )
-			si_file_date_integer=$( date -ud "$_si_timestamp" +%Y%m%d%H%M%S 2>/dev/null )
+			si_file_timestamp=$( $DATEUD "$_si_timestamp" +%s 2>/dev/null )
+			si_file_date_iso=$( $DATEUD "$_si_timestamp" -Iseconds 2>/dev/null | sed 's/+00:00/Z/' )
+			si_file_date_integer=$( $DATEUD "$_si_timestamp" +%Y%m%d%H%M%S 2>/dev/null )
 			# SVN repositories have no project hash.
 			si_file_hash=
 			si_file_abbreviated_hash=
@@ -460,8 +473,8 @@ set_info_file() {
 		si_file_abbreviated_hash=$( hg --cwd "$si_repo_dir" log --limit 1 --template '{node|short}' "$_si_file" 2>/dev/null )
 		si_file_author=$( hg --cwd "$si_repo_dir" log --limit 1 --template '{author}' "$_si_file" 2>/dev/null )
 		si_file_timestamp=$( hg --cwd "$si_repo_dir" log --limit 1 --template '{date}' "$_si_file" 2>/dev/null | cut -d. -f1 )
-		si_file_date_iso=$( date -ud "@$si_file_timestamp" -Iseconds 2>/dev/null | sed 's/+00:00/Z/' )
-		si_file_date_integer=$( date -ud "@$si_file_timestamp" +%Y%m%d%H%M%S 2>/dev/null )
+		si_file_date_iso=$( $DATEUD "@$si_file_timestamp" -Iseconds 2>/dev/null | sed 's/+00:00/Z/' )
+		si_file_date_integer=$( $DATEUD "@$si_file_timestamp" +%Y%m%d%H%M%S 2>/dev/null )
 		si_file_revision=$( hg --cwd "$si_repo_dir" log --limit 1 --template '{rev}' "$_si_file" 2>/dev/null )
 	fi
 }
@@ -1712,7 +1725,7 @@ if [ ! -f "$topdir/$changelog" -a ! -f "$topdir/CHANGELOG.txt" -a ! -f "$topdir/
 			changelog_url_wowi=
 			changelog_version_wowi="[color=orange]$project_version[/color]"
 		fi
-		changelog_date=$( date -ud "@$project_timestamp" +%Y-%m-%d )
+		changelog_date=$( $DATEUD "@$project_timestamp" +%Y-%m-%d )
 
 		cat <<- EOF | line_ending_filter > "$pkgdir/$changelog"
 		# $project
@@ -1757,7 +1770,7 @@ if [ ! -f "$topdir/$changelog" -a ! -f "$topdir/CHANGELOG.txt" -a ! -f "$topdir/
 		if [ -n "$previous_version" ]; then
 			_changelog_range="-r$project_revision:$previous_revision"
 		fi
-		changelog_date=$( date -ud "@$project_timestamp" +%Y-%m-%d )
+		changelog_date=$( $DATEUD "@$project_timestamp" +%Y-%m-%d )
 
 		cat <<- EOF | line_ending_filter > "$pkgdir/$changelog"
 		# $project
@@ -1799,7 +1812,7 @@ if [ ! -f "$topdir/$changelog" -a ! -f "$topdir/CHANGELOG.txt" -a ! -f "$topdir/
 		if [ -n "$previous_revision" ]; then
 			_changelog_range="::$project_revision - ::$previous_revision - filelog(.hgtags)"
 		fi
-		changelog_date=$( date -ud "@$project_timestamp" +%Y-%m-%d )
+		changelog_date=$( $DATEUD "@$project_timestamp" +%Y-%m-%d )
 
 		cat <<- EOF | line_ending_filter > "$pkgdir/$changelog"
 		# $project
