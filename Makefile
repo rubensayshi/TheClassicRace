@@ -11,7 +11,7 @@ endif
 
 setup-dev:
 	luarocks install luacheck
-	luarocks install busted
+	luarocks install busted 2.0.rc13-0
 	luarocks install cluacov || luarocks install luacov
 
 hr:
