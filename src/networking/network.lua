@@ -41,17 +41,16 @@ function TheClassicRaceNetwork.new(Core, EventBus)
     self.Thread:SetScript("OnEvent", function(_, event)
         TheClassicRace:DebugPrint(event)
         if (event == "CHANNEL_UI_UPDATE") then
-            self.Thread:UnregisterEvent("CHANNEL_UI_UPDATE")
             self:InitChannel()
         end
     end)
 
-    -- init channel or register for a CHANNEL_UI_UPDATE if we're too early
+    -- init channel if we're not too early (otherwise we'll wait for CHANNEL_UI_UPDATE)
     if GetNumDisplayChannels() > 0 then
         self:InitChannel()
-    else
-        self.Thread:RegisterEvent("CHANNEL_UI_UPDATE")
     end
+    -- register for CHANNEL_UI_UPDATE so we know when our channel might have changed
+    self.Thread:RegisterEvent("CHANNEL_UI_UPDATE")
 
     AceComm:RegisterComm(TheClassicRace.Config.Network.Prefix, function(...)
         self:HandleAddonMessage(...)
@@ -61,15 +60,18 @@ function TheClassicRaceNetwork.new(Core, EventBus)
 end
 
 function TheClassicRaceNetwork:InitChannel()
+    local channelId = nil
     local channels = { GetChannelList() }
     local i = 2
     while i < #channels do
         if (channels[i] == TheClassicRace.Config.Network.Channel.Name) then
-            TheClassicRace.Config.Network.Channel.Id = channels[i - 1]
+            channelId = channels[i - 1]
             break
         end
         i = i + 3
     end
+
+    TheClassicRace.Config.Network.Channel.Id = channelId
 end
 
 function TheClassicRaceNetwork:HandleAddonMessage(...)
