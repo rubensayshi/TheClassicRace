@@ -57,11 +57,11 @@ describe("Tracker", function()
 
             assert.equals(5, #db.realm.leaderboard)
             assert.same({
-                {name = "Nub1", level = 5, dingedAt = time},
-                {name = "Nub2", level = 5, dingedAt = time},
-                {name = "Nub3", level = 5, dingedAt = time},
-                {name = "Nub4", level = 5, dingedAt = time},
-                {name = "Nub5", level = 5, dingedAt = time},
+                {name = "Nub1", level = 5, dingedAt = time, observedAt = time},
+                {name = "Nub2", level = 5, dingedAt = time, observedAt = time},
+                {name = "Nub3", level = 5, dingedAt = time, observedAt = time},
+                {name = "Nub4", level = 5, dingedAt = time, observedAt = time},
+                {name = "Nub5", level = 5, dingedAt = time, observedAt = time},
             }, db.realm.leaderboard)
         end)
 
@@ -82,11 +82,11 @@ describe("Tracker", function()
             tracker:HandlePlayerInfo({name = "Nub6", level = 5}, false)
             assert.equals(5, #db.realm.leaderboard)
             assert.same({
-                {name = "Nub1", level = 5, dingedAt = time},
-                {name = "Nub2", level = 5, dingedAt = time},
-                {name = "Nub3", level = 5, dingedAt = time},
-                {name = "Nub4", level = 5, dingedAt = time},
-                {name = "Nub5", level = 5, dingedAt = time},
+                {name = "Nub1", level = 5, dingedAt = time, observedAt = time},
+                {name = "Nub2", level = 5, dingedAt = time, observedAt = time},
+                {name = "Nub3", level = 5, dingedAt = time, observedAt = time},
+                {name = "Nub4", level = 5, dingedAt = time, observedAt = time},
+                {name = "Nub5", level = 5, dingedAt = time, observedAt = time},
             }, db.realm.leaderboard)
         end)
 
@@ -106,9 +106,9 @@ describe("Tracker", function()
             tracker:HandlePlayerInfo({name = "Nub2", level = 6}, false)
             assert.equals(3, #db.realm.leaderboard)
             assert.same({
-                {name = "Nub2", level = 6, dingedAt = time},
-                {name = "Nub1", level = 5, dingedAt = time},
-                {name = "Nub3", level = 5, dingedAt = time},
+                {name = "Nub2", level = 6, dingedAt = time, observedAt = time},
+                {name = "Nub1", level = 5, dingedAt = time, observedAt = time},
+                {name = "Nub3", level = 5, dingedAt = time, observedAt = time},
             }, db.realm.leaderboard)
         end)
 
@@ -122,11 +122,11 @@ describe("Tracker", function()
             tracker:HandlePlayerInfo({name = "Nub6", level = 6}, false)
             assert.equals(5, #db.realm.leaderboard)
             assert.same({
-                {name = "Nub6", level = 6, dingedAt = time},
-                {name = "Nub1", level = 5, dingedAt = time},
-                {name = "Nub2", level = 5, dingedAt = time},
-                {name = "Nub3", level = 5, dingedAt = time},
-                {name = "Nub4", level = 5, dingedAt = time},
+                {name = "Nub6", level = 6, dingedAt = time, observedAt = time},
+                {name = "Nub1", level = 5, dingedAt = time, observedAt = time},
+                {name = "Nub2", level = 5, dingedAt = time, observedAt = time},
+                {name = "Nub3", level = 5, dingedAt = time, observedAt = time},
+                {name = "Nub4", level = 5, dingedAt = time, observedAt = time},
             }, db.realm.leaderboard)
         end)
 
@@ -207,39 +207,50 @@ describe("Tracker", function()
             assert.spy(networkSpy).called_at_most(1)
         end)
 
-        it("responds to request", function()
-            local networkSpy = spy.on(network, "SendObject")
+        it("starts broadcaster on request", function()
+            local broadcasterFactorySpy = spy.on(TheClassicRace, "Broadcaster")
 
             tracker:HandlePlayerInfo({name = "Nub1", level = 5}, false)
 
             tracker:OnRequestUpdate(nil, "Roobs")
 
-            assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.PlayerInfo,
-                    {"Nub1", 5, time}, "WHISPER", "Roobs")
+            assert.spy(broadcasterFactorySpy).was_called()
+            broadcasterFactorySpy:revert()
         end)
 
-        it("throttles requests", function()
-            local networkSpy = spy.on(network, "SendObject")
+        it("reuses broadcaster on request", function()
+            local broadcasterFactorySpy = spy.on(TheClassicRace, "Broadcaster")
 
-            local dingedAt = time
             tracker:HandlePlayerInfo({name = "Nub1", level = 5}, false)
 
             tracker:OnRequestUpdate(nil, "Roobs")
 
-            assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.PlayerInfo,
-                    {"Nub1", 5, dingedAt}, "WHISPER", "Roobs")
+            assert.spy(broadcasterFactorySpy).was_called()
+            broadcasterFactorySpy:clear()
 
-            networkSpy:clear()
             tracker:OnRequestUpdate(nil, "Roobs")
 
-            assert.spy(networkSpy).was_not_called()
+            assert.spy(broadcasterFactorySpy).was_not_called()
+            broadcasterFactorySpy:revert()
+        end)
 
-            networkSpy:clear()
-            time = time + config.Throttle
+        it("restarts broadcaster on request", function()
+            local broadcasterFactorySpy = spy.on(TheClassicRace, "Broadcaster")
+
+            tracker:HandlePlayerInfo({name = "Nub1", level = 5}, false)
+
             tracker:OnRequestUpdate(nil, "Roobs")
 
-            assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.PlayerInfo,
-                    {"Nub1", 5, dingedAt}, "WHISPER", "Roobs")
+            assert.spy(broadcasterFactorySpy).was_called()
+            broadcasterFactorySpy:clear()
+
+            -- hacky way to mark broadcaster as done
+            tracker.broadcaster.done = true
+
+            tracker:OnRequestUpdate(nil, "Roobs")
+
+            assert.spy(broadcasterFactorySpy).was_called()
+            broadcasterFactorySpy:revert()
         end)
     end)
 

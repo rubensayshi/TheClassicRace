@@ -17,3 +17,19 @@ end
 function _G.hooksecurefunc()
 
 end
+
+_G.C_Timer = {}
+
+function _G.C_Timer.NewTicker()
+    local ticker = {}
+    function ticker:Cancel() end
+
+    return ticker
+end
+
+function _G.C_Timer.NewTimer()
+    local timer = {}
+    function timer:Cancel() end
+
+    return timer
+end

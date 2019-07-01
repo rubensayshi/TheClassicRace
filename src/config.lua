@@ -32,6 +32,8 @@ local TheClassicRaceConfig = {
             Id = nil, -- will be set at runtime to channel ID if joined
         },
         Events = {
+            -- PlayerInfo({name, level, dingedAt, [broadcast]})
+            -- argument is a list, not a dict, for efficiency
             PlayerInfo = "TCRACE_NET_PLAYER_INFO",
             RequestUpdate = "TCRACE_NET_REQUEST_UPDATE",
         },

@@ -14,6 +14,7 @@ to us through the EventBus.
 ---@field Core TheClassicRaceCore
 ---@field EventBus TheClassicRaceEventBus
 ---@field Network TheClassicRaceNetwork
+---@field broadcaster TheClassicRaceBroadcaster
 local TheClassicRaceTracker = {}
 TheClassicRaceTracker.__index = TheClassicRaceTracker
 TheClassicRace.Tracker = TheClassicRaceTracker
@@ -32,7 +33,7 @@ function TheClassicRaceTracker.new(Config, Core, DB, EventBus, Network)
     self.EventBus = EventBus
     self.Network = Network
 
-    self.throttles = {}
+    self.broadcaster = nil
 
     -- subscribe to network events
     EventBus:RegisterCallback(self.Config.Network.Events.PlayerInfo, self, self.OnPlayerInfo)
@@ -61,11 +62,12 @@ function TheClassicRaceTracker:RequestUpdate()
     end
 end
 
-function TheClassicRaceTracker:OnRequestUpdate(_, sender)
+function TheClassicRaceTracker:OnRequestUpdate()
     -- don't respond to update requests when we've disabled networking
     if not self.DB.profile.options.networking then
         return
     end
+
     TheClassicRace:DebugPrint("Update Requested")
 
     -- if we don't know a leader yet then we can't respond
@@ -74,33 +76,14 @@ function TheClassicRaceTracker:OnRequestUpdate(_, sender)
         return
     end
 
-    -- cleanup throttle list
-    local now = self.Core:Now()
-    for _, throttle in ipairs(self.throttles) do
-        if throttle.time + TheClassicRace.Config.Throttle <= now then
-            table.remove(self.throttles, 1)
-        else
-            break
-        end
+    -- update last RequestUpdate timestamp
+    self.DB.realm.lastRequestUpdate = self.Core:Now()
+
+    -- (re)start our broadcaster if neccesary
+    if self.broadcaster == nil or self.broadcaster:IsDone() then
+        self.broadcaster = TheClassicRace.Broadcaster(self.Config, self.Core, self.DB, self.Network)
+        self.broadcaster:Start()
     end
-
-    -- check if sender is still in throttle window
-    for _, throttle in ipairs(self.throttles) do
-        if throttle.sender == sender then
-            TheClassicRace:TracePrint("throttled " .. sender)
-            return
-        end
-    end
-
-    -- add sender to throttle list
-    table.insert(self.throttles, {sender = sender, time = now})
-
-    -- respond with leader
-    self.Network:SendObject(self.Config.Network.Events.PlayerInfo, {
-        self.DB.realm.leaderboard[1].name,
-        self.DB.realm.leaderboard[1].level,
-        self.DB.realm.leaderboard[1].dingedAt
-    }, "WHISPER", sender)
 end
 
 function TheClassicRaceTracker:OnScanFinished(endofrace)
@@ -196,6 +179,8 @@ function TheClassicRaceTracker:HandlePlayerInfo(playerInfo, shouldBroadcast)
         name = playerInfo.name,
         level = playerInfo.level,
         dingedAt = dingedAt,
+        -- track last time this player was "observed"
+        observedAt = now,
     })
 
     -- truncate when leaderboard reached max size

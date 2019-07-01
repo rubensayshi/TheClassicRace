@@ -26,6 +26,7 @@ src\networking\network.lua
 src\core\event-bus.lua
 src\core\core.lua
 src\core\tracker.lua
+src\core\broadcaster.lua
 src\core\updater.lua
 src\core\scan.lua
 src\core\chat-notifier.lua

@@ -15,6 +15,7 @@ local TheClassicRaceDefaultDB = {
         finished = false,
         levelThreshold = 2,
         highestLevel = 1,
+        lastRequestUpdate = 0,
         leaderboard = {},
     },
 }
