@@ -39,6 +39,9 @@ local TheClassicRaceConfig = {
     Events = {
         SlashWhoResult = "TCRACE_WHO_RESULT",
         Ding = "TCRACE_DING",
+        -- ScanFinished(endofrace)
+        -- should use RaceFinished though if interested in when the race is finished,
+        -- because that's only broadcasted once
         ScanFinished = "TCRACE_SCAN_FINISHED",
         RaceFinished = "TCRACE_RACE_FINISHED",
     },

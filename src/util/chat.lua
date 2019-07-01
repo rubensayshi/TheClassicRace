@@ -1,5 +1,17 @@
 local TheClassicRace = _G.TheClassicRace
 
+local function dumpTable(o)
+    if type(o) == "table" then
+        local s = "{ "
+        for k,v in pairs(o) do
+            s = s .. "[" .. k .. "] = " .. dumpTable(v) .. ", "
+        end
+        return s .. "} "
+    else
+        return tostring(o)
+    end
+end
+
 function TheClassicRace:Print(message)
     print("|cFFFFFFFF", message)
 end
@@ -25,21 +37,16 @@ function TheClassicRace:TracePrint(message)
 end
 
 function TheClassicRace:DebugPrintTable(t)
-    local function dump(o)
-        if type(o) == "table" then
-            local s = "{ "
-            for k,v in pairs(o) do
-                s = s .. "[" .. k .. "] = " .. dump(v) .. ", "
-            end
-            return s .. "} "
-        else
-            return tostring(o)
-        end
-    end
-
     if (self.Config.Debug == true) then
         print("|cFF7777FFTheClassicRace Debug:|cFFFFFFFF table...")
-        print(dump(t))
+        print(dumpTable(t))
+    end
+end
+
+function TheClassicRace:TracePrintTable(t)
+    if (self.Config.Trace == true) then
+        print("|cFF7777FFTheClassicRace Trace:|cFFFFFFFF table...")
+        print(dumpTable(t))
     end
 end
 
