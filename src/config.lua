@@ -26,7 +26,7 @@ local TheClassicRaceConfig = {
         Prefix = "TCRace",
         Channel = {
             Name = "world",
-            Id = 1, -- will be set at runtime to channel ID when joined
+            Id = nil, -- will be set at runtime to channel ID if joined
         },
         Events = {
             PlayerInfo = "TCRACE_NET_PLAYER_INFO",
