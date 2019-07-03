@@ -3,16 +3,25 @@ local LibStub = _G.LibStub
 
 -- Addon global
 ---@class TheClassicRace
----@field Config TheClassicRaceConfig
----@field Colors TheClassicRaceColors
----@field Core TheClassicRaceCore
----@field Network TheClassicRaceNetwork
----@field EventBus TheClassicRaceEventBus
----@field Updater TheClassicRaceUpdater
----@field Tracker TheClassicRaceTracker
----@field ChatNotifier TheClassicRaceChatNotifier
----@field StatusFrame TheClassicRaceStatusFrame
----@field DefaultDB TheClassicRaceDefaultDB
+---@field Config        TheClassicRaceConfig
+---       our config table
+---@field Colors        TheClassicRaceColors
+---       our color shorthand table
+---@field Core          TheClassicRaceCore
+---       contains basic helpers such as :Me(), :Now(), etc
+---@field EventBus      TheClassicRaceEventBus
+---       event bus to facilitate communication between components
+---@field Network       TheClassicRaceNetwork
+---       bridge between AceComms and our EventBus
+---@field Updater       TheClassicRaceUpdater
+---       contains ticker to start Scans and publishes events based of Scan results
+---@field Tracker       TheClassicRaceTracker
+---       manages the leaderboard based on events
+---@field ChatNotifier  TheClassicRaceChatNotifier
+---       writes notifications in chat window based on events
+---@field StatusFrame   TheClassicRaceStatusFrame
+---       GUI element to display the leaderboard
+---@field DefaultDB     TheClassicRaceDefaultDB
 TheClassicRace = LibStub("AceAddon-3.0"):NewAddon("TheClassicRace", "AceConsole-3.0")
 
 function TheClassicRace:OnInitialize()

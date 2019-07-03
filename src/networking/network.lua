@@ -1,12 +1,3 @@
---[[
-Networking code from https://github.com/DomenikIrrgang/ClassicLFG released under MIT.
-Copyright (c) 2019 Domenik Irrgang
-
-TheClassicRaceNetwork will receive messages over Addon channels and broadcast them as events once received fully.
-Objects sent are serialized and chunked to fit max size of messages.
-
-@TODO: replace with AceComm-3.0
---]]
 -- Addon global
 local TheClassicRace = _G.TheClassicRace
 
@@ -18,6 +9,10 @@ local LibStub = _G.LibStub
 local Serializer = LibStub:GetLibrary("AceSerializer-3.0")
 local AceComm = LibStub:GetLibrary("AceComm-3.0")
 
+--[[
+TheClassicRaceNetwork uses AceComm to send and receive messages over Addon channels
+and broadcast them as events once received fully over our EventBus.
+--]]
 ---@class TheClassicRaceNetwork
 ---@field Core TheClassicRaceCore
 ---@field EventBus TheClassicRaceEventBus
