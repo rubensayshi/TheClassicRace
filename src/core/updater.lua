@@ -135,8 +135,9 @@ function TheClassicRaceUpdater:StartScan()
     end
 
     local min = self.DB.realm.levelThreshold
+    local prevhighestlvl = self.DB.realm.highestLevel
     local max = TheClassicRace.Config.MaxLevel
 
-    self.Scan = TheClassicRace.Scan(self.Core, self.DB, self.EventBus, who, min, max)
+    self.Scan = TheClassicRace.Scan(self.Core, self.DB, self.EventBus, who, min, prevhighestlvl, max)
     self.Scan:Start()
 end

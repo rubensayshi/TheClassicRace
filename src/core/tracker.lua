@@ -104,9 +104,9 @@ function TheClassicRaceTracker:OnRequestUpdate(_, sender)
     }, "WHISPER", sender)
 end
 
-function TheClassicRaceTracker:OnScanFinished(complete)
+function TheClassicRaceTracker:OnScanFinished(endofrace)
     -- if a scan finished but the result wasn't complete then we have too many max level players
-    if not complete then
+    if endofrace then
         self:RaceFinished()
     end
 end
