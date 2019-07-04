@@ -7,6 +7,8 @@
 ## LoadOnDemand: 0
 ## SavedVariables: TheClassicRace_DB
 ## X-Curse-Project-ID: 325388
+## X-WoWI-ID: 25052
+
 libs.xml
 
 src\main.lua
