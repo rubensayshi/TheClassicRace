@@ -38,6 +38,11 @@ function TheClassicRaceChatNotifier:OnDing(playerInfo, rank)
         return
     end
 
+    -- for any old dings except the rank 1 we ignore
+    if rank > 1 and playerInfo.dingedAt < self.Core:Now() - 600 then
+        return
+    end
+
     if playerInfo.name == self.Core:Me() then
         self:OnSelfDing(playerInfo, rank)
     else
