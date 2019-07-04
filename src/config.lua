@@ -37,12 +37,12 @@ local TheClassicRaceConfig = {
         },
     },
     Events = {
-        SlashWhoResult = "TCRACE_WHO_RESULT",
-        Ding = "TCRACE_DING",
-        ScanFinished = "TCRACE_SCAN_FINISHED",
-        RaceFinished = "TCRACE_RACE_FINISHED",
-        LeaderboardSizeDecreased = "TCRACE_LEADERBOARD_SIZE_DECREASED",
-        RefreshGUI = "TCRACE_REFRESH_GUI",
+        SlashWhoResult = "WHO_RESULT",
+        Ding = "DING",
+        ScanFinished = "SCAN_FINISHED",
+        RaceFinished = "RACE_FINISHED",
+        LeaderboardSizeDecreased = "LEADERBOARD_SIZE_DECREASED",
+        RefreshGUI = "REFRESH_GUI",
     },
 }
 TheClassicRace.Config = TheClassicRaceConfig
