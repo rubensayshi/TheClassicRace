@@ -17,7 +17,7 @@ local TheClassicRaceConfig = {
     --@end-debug@
 
     MaxLevel = 60,
-    LeaderboardSize = 50,
+    MaxLeaderboardSize = 50,
 
     -- RequestUpdate throttle time window
     Throttle = 60,
@@ -41,6 +41,8 @@ local TheClassicRaceConfig = {
         Ding = "TCRACE_DING",
         ScanFinished = "TCRACE_SCAN_FINISHED",
         RaceFinished = "TCRACE_RACE_FINISHED",
+        LeaderboardSizeDecreased = "TCRACE_LEADERBOARD_SIZE_DECREASED",
+        RefreshGUI = "TCRACE_REFRESH_GUI",
     },
 }
 TheClassicRace.Config = TheClassicRaceConfig

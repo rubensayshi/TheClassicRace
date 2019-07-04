@@ -81,5 +81,5 @@ function TheClassicRaceChatNotifier:OnStrangerDing(playerInfo, rank)
 end
 
 function TheClassicRaceChatNotifier:OnRaceFinished()
-    TheClassicRace:PPrint("More than " .. self.Config.LeaderboardSize .. " players have reached max level, the race is over!")
+    TheClassicRace:PPrint("More than " .. self.DB.profile.options.leaderboardSize .. " players have reached max level, the race is over!")
 end

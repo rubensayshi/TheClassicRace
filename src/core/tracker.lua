@@ -40,6 +40,7 @@ function TheClassicRaceTracker.new(Config, Core, DB, EventBus, Network)
     -- subscribe to local events
     EventBus:RegisterCallback(self.Config.Events.SlashWhoResult, self, self.OnSlashWhoResult)
     EventBus:RegisterCallback(self.Config.Events.ScanFinished, self, self.OnScanFinished)
+    EventBus:RegisterCallback(self.Config.Events.LeaderboardSizeDecreased, self, self.OnLeaderboardSizeDecreased)
 
     return self
 end
@@ -110,6 +111,15 @@ function TheClassicRaceTracker:OnScanFinished(complete)
     end
 end
 
+function TheClassicRaceTracker:OnLeaderboardSizeDecreased()
+    -- truncate leaderboard to match size
+    while #self.DB.realm.leaderboard > self.DB.profile.options.leaderboardSize do
+        table.remove(self.DB.realm.leaderboard)
+    end
+
+    self.EventBus:PublishEvent(self.Config.Events.RefreshGUI)
+end
+
 function TheClassicRaceTracker:RaceFinished()
     if not self.DB.realm.finished then
         self.DB.realm.finished = true
@@ -177,7 +187,7 @@ function TheClassicRaceTracker:HandlePlayerInfo(playerInfo, shouldBroadcast)
     end
 
     -- grow the leaderboard up until the max size
-    if insertAtRank == nil and #self.DB.realm.leaderboard < self.Config.LeaderboardSize then
+    if insertAtRank == nil and #self.DB.realm.leaderboard < self.DB.profile.options.leaderboardSize then
         insertAtRank = #self.DB.realm.leaderboard + 1
     end
 
@@ -199,7 +209,7 @@ function TheClassicRaceTracker:HandlePlayerInfo(playerInfo, shouldBroadcast)
     })
 
     -- truncate when leaderboard reached max size
-    if not previousRank and #self.DB.realm.leaderboard > self.Config.LeaderboardSize then
+    while #self.DB.realm.leaderboard > self.DB.profile.options.leaderboardSize do
         table.remove(self.DB.realm.leaderboard)
     end
 
@@ -222,7 +232,7 @@ function TheClassicRaceTracker:HandlePlayerInfo(playerInfo, shouldBroadcast)
     self.DB.realm.highestLevel = math.max(self.DB.realm.highestLevel, playerInfo.level)
 
     -- we only care about levels >= our bottom ranked on the leaderboard
-    if #self.DB.realm.leaderboard >= self.Config.LeaderboardSize then
+    if #self.DB.realm.leaderboard >= self.DB.profile.options.leaderboardSize then
         self.DB.realm.levelThreshold = self.DB.realm.leaderboard[#self.DB.realm.leaderboard].level
 
         if self.DB.realm.levelThreshold == self.Config.MaxLevel then

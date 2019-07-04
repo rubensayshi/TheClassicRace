@@ -31,6 +31,26 @@ function TheClassicRace:RegisterOptions()
                 name = "Options",
                 type = "group",
                 args = {
+                    leaderboardSize = {
+                        name = "Number of players to track",
+                        desc = "Limit how many players to track for leaderboard and chat notifications",
+                        descStyle = "inline",
+                        width = "full",
+                        type = "range",
+                        step = 1,
+                        min = 1,
+                        max = TheClassicRace.Config.MaxLeaderboardSize,
+                        set = function(_, val)
+                            local decreased = val < _self.DB.profile.options.leaderboardSize
+                            _self.DB.profile.options.leaderboardSize = val
+
+                            -- broadcast event when size decreased
+                            if decreased then
+                                _self.EventBus:PublishEvent(TheClassicRace.Config.Events.LeaderboardSizeDecreased)
+                            end
+                        end,
+                        get = function() return _self.DB.profile.options.leaderboardSize end
+                    },
                     enableNotifications = {
                         name = "Enable Notifications",
                         desc = "Enables / disables the notifications in your chat window",

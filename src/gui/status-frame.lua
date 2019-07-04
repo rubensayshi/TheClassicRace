@@ -34,6 +34,7 @@ function TheClassicRaceStatusFrame.new(Config, Core, DB, EventBus)
 
     -- subscribe to local events
     EventBus:RegisterCallback(self.Config.Events.Ding, self, self.OnDing)
+    EventBus:RegisterCallback(self.Config.Events.RefreshGUI, self, self.OnRefreshGUI)
 
     self.frame = nil
     self.contentframe = nil
@@ -42,6 +43,10 @@ function TheClassicRaceStatusFrame.new(Config, Core, DB, EventBus)
 end
 
 function TheClassicRaceStatusFrame:OnDing()
+    self:Refresh()
+end
+
+function TheClassicRaceStatusFrame:OnRefreshGUI()
     self:Refresh()
 end
 

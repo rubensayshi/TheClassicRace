@@ -30,9 +30,12 @@ describe("Tracker", function()
     local time = 1000000000
 
     before_each(function()
-        config = mergeConfigs(TheClassicRace.Config, {LeaderboardSize = 5})
+        config = mergeConfigs(TheClassicRace.Config, {MaxLeaderboardSize = 5})
+        -- little hacky to adjust DefaultDB because it's constant
+        defaultDb = mergeConfigs(TheClassicRace.DefaultDB, {})
+        defaultDb.profile.options.leaderboardSize = config.MaxLeaderboardSize
 
-        db = LibStub("AceDB-3.0"):New("TheClassicRace_DB", TheClassicRace.DefaultDB, true)
+        db = LibStub("AceDB-3.0"):New("TheClassicRace_DB", defaultDb, true)
         db:ResetDB()
         core = TheClassicRace.Core("Nub", "NubVille")
         -- mock core:Now() to return our mocked time
@@ -88,6 +91,30 @@ describe("Tracker", function()
                 {name = "Nub4", level = 5, dingedAt = time},
                 {name = "Nub5", level = 5, dingedAt = time},
             }, db.realm.leaderboard)
+        end)
+
+        it("truncates when config is decreased", function()
+            tracker:HandlePlayerInfo({name = "Nub1", level = 5}, false)
+            tracker:HandlePlayerInfo({name = "Nub2", level = 5}, false)
+            tracker:HandlePlayerInfo({name = "Nub3", level = 5}, false)
+            tracker:HandlePlayerInfo({name = "Nub4", level = 5}, false)
+            tracker:HandlePlayerInfo({name = "Nub5", level = 5}, false)
+            tracker:HandlePlayerInfo({name = "Nub6", level = 5}, false)
+
+            -- leaderboard is capped at 5
+            assert.equals(5, #db.realm.leaderboard)
+
+            -- adjust the option
+            db.profile.options.leaderboardSize = 4
+
+            -- nothing changed yet until we fire event
+            assert.equals(5, #db.realm.leaderboard)
+
+            -- fire event
+            eventbus:PublishEvent(config.Events.LeaderboardSizeDecreased)
+
+            -- leaderboard should be truncated
+            assert.equals(4, #db.realm.leaderboard)
         end)
 
         it("bumps on ding", function()
