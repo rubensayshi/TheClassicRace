@@ -156,10 +156,8 @@ function TheClassicRaceTracker:HandlePlayerInfo(playerInfo, shouldBroadcast)
         return
     end
 
-    local now = self.Core:Now()
-    local dingedAt = playerInfo.DingedAt
-    if dingedAt == nil then
-        dingedAt = now
+    if playerInfo.dingedAt == nil then
+        playerInfo.dingedAt = self.Core:Now()
     end
 
     -- determine where to insert the player and his previous rank
@@ -205,7 +203,7 @@ function TheClassicRaceTracker:HandlePlayerInfo(playerInfo, shouldBroadcast)
     table.insert(self.DB.realm.leaderboard, insertAtRank, {
         name = playerInfo.name,
         level = playerInfo.level,
-        dingedAt = dingedAt,
+        dingedAt = playerInfo.dingedAt,
     })
 
     -- truncate when leaderboard reached max size
@@ -216,10 +214,10 @@ function TheClassicRaceTracker:HandlePlayerInfo(playerInfo, shouldBroadcast)
     -- broadcast
     if shouldBroadcast and self.DB.profile.options.networking then
         self.Network:SendObject(self.Config.Network.Events.PlayerInfo,
-                { playerInfo.name, playerInfo.level, dingedAt }, "CHANNEL")
+                { playerInfo.name, playerInfo.level, playerInfo.dingedAt }, "CHANNEL")
         if IsInGuild() then
             self.Network:SendObject(self.Config.Network.Events.PlayerInfo,
-                    { playerInfo.name, playerInfo.level, dingedAt }, "GUILD")
+                    { playerInfo.name, playerInfo.level, playerInfo.dingedAt }, "GUILD")
         end
     end
 
