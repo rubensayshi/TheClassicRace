@@ -28,7 +28,11 @@ function TheClassicRace:slashtcr(input)
 
     --[[REQUEST UPDATE]]--
     elseif action == "update" then
-        self.Tracker:RequestUpdate()
+        self.Sync:InitSync()
+
+    --[[WHOAMI]]--
+    elseif action == "whoami" then
+        self.Core:InitMe(arg1, self.Core:MyRealm())
 
     --[[LIST]]--
     elseif action == "list" then

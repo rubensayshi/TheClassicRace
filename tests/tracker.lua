@@ -181,10 +181,10 @@ describe("Tracker", function()
                     match.is_table(), 2)
         end)
 
-        it("shouldn't broadcast to network OnPlayerInfo", function()
+        it("shouldn't broadcast to network OnNetPlayerInfo", function()
             local networkSpy = spy.on(network, "SendObject")
 
-            tracker:OnPlayerInfo({"Nub1", 5, nil})
+            tracker:OnNetPlayerInfo({{"Nub1", 5, nil}, })
             assert.spy(networkSpy).was_not_called()
         end)
 
@@ -207,66 +207,6 @@ describe("Tracker", function()
             assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.PlayerInfo,
                     match.is_table(), "CHANNEL")
             assert.spy(networkSpy).called_at_most(1)
-        end)
-    end)
-
-    describe("RequestUpdate", function()
-        it("sends request", function()
-            local networkSpy = spy.on(network, "SendObject")
-
-            tracker:RequestUpdate()
-
-            assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.RequestUpdate,
-                    match.is_table(), "CHANNEL")
-            assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.RequestUpdate,
-                    match.is_table(), "GUILD")
-        end)
-
-        it("sends request, not to guild when not in guild", function()
-            local networkSpy = spy.on(network, "SendObject")
-
-            _G.SetIsInGuild(false)
-
-            tracker:RequestUpdate()
-
-            assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.RequestUpdate,
-                    match.is_table(), "CHANNEL")
-            assert.spy(networkSpy).called_at_most(1)
-        end)
-
-        it("responds to request", function()
-            local networkSpy = spy.on(network, "SendObject")
-
-            tracker:HandlePlayerInfo({name = "Nub1", level = 5}, false)
-
-            tracker:OnRequestUpdate(nil, "Roobs")
-
-            assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.PlayerInfo,
-                    {"Nub1", 5, time}, "WHISPER", "Roobs")
-        end)
-
-        it("throttles requests", function()
-            local networkSpy = spy.on(network, "SendObject")
-
-            local dingedAt = time
-            tracker:HandlePlayerInfo({name = "Nub1", level = 5}, false)
-
-            tracker:OnRequestUpdate(nil, "Roobs")
-
-            assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.PlayerInfo,
-                    {"Nub1", 5, dingedAt}, "WHISPER", "Roobs")
-
-            networkSpy:clear()
-            tracker:OnRequestUpdate(nil, "Roobs")
-
-            assert.spy(networkSpy).was_not_called()
-
-            networkSpy:clear()
-            time = time + config.Throttle
-            tracker:OnRequestUpdate(nil, "Roobs")
-
-            assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.PlayerInfo,
-                    {"Nub1", 5, dingedAt}, "WHISPER", "Roobs")
         end)
     end)
 

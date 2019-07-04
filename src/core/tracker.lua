@@ -35,73 +35,13 @@ function TheClassicRaceTracker.new(Config, Core, DB, EventBus, Network)
     self.throttles = {}
 
     -- subscribe to network events
-    EventBus:RegisterCallback(self.Config.Network.Events.PlayerInfo, self, self.OnPlayerInfo)
-    EventBus:RegisterCallback(self.Config.Network.Events.RequestUpdate, self, self.OnRequestUpdate)
+    EventBus:RegisterCallback(self.Config.Network.Events.PlayerInfo, self, self.OnNetPlayerInfo)
     -- subscribe to local events
     EventBus:RegisterCallback(self.Config.Events.SlashWhoResult, self, self.OnSlashWhoResult)
     EventBus:RegisterCallback(self.Config.Events.ScanFinished, self, self.OnScanFinished)
     EventBus:RegisterCallback(self.Config.Events.LeaderboardSizeDecreased, self, self.OnLeaderboardSizeDecreased)
 
     return self
-end
-
-function TheClassicRaceTracker:RequestUpdate()
-    -- don't request updates when we know the race has finished
-    if self.DB.realm.finished then
-        return
-    end
-    -- don't request updates when we've disabled networking
-    if not self.DB.profile.options.networking then
-        return
-    end
-
-    -- request update over guild and channel
-    self.Network:SendObject(self.Config.Network.Events.RequestUpdate, {}, "CHANNEL")
-    if IsInGuild() then
-        self.Network:SendObject(self.Config.Network.Events.RequestUpdate, {}, "GUILD")
-    end
-end
-
-function TheClassicRaceTracker:OnRequestUpdate(_, sender)
-    -- don't respond to update requests when we've disabled networking
-    if not self.DB.profile.options.networking then
-        return
-    end
-    TheClassicRace:DebugPrint("Update Requested")
-
-    -- if we don't know a leader yet then we can't respond
-    if #self.DB.realm.leaderboard == 0 then
-        TheClassicRace:DebugPrint("Update Requested, but no leader")
-        return
-    end
-
-    -- cleanup throttle list
-    local now = self.Core:Now()
-    for _, throttle in ipairs(self.throttles) do
-        if throttle.time + TheClassicRace.Config.Throttle <= now then
-            table.remove(self.throttles, 1)
-        else
-            break
-        end
-    end
-
-    -- check if sender is still in throttle window
-    for _, throttle in ipairs(self.throttles) do
-        if throttle.sender == sender then
-            TheClassicRace:TracePrint("throttled " .. sender)
-            return
-        end
-    end
-
-    -- add sender to throttle list
-    table.insert(self.throttles, {sender = sender, time = now})
-
-    -- respond with leader
-    self.Network:SendObject(self.Config.Network.Events.PlayerInfo, {
-        self.DB.realm.leaderboard[1].name,
-        self.DB.realm.leaderboard[1].level,
-        self.DB.realm.leaderboard[1].dingedAt
-    }, "WHISPER", sender)
 end
 
 function TheClassicRaceTracker:OnScanFinished(endofrace)
@@ -128,12 +68,19 @@ function TheClassicRaceTracker:RaceFinished()
     end
 end
 
-function TheClassicRaceTracker:OnPlayerInfo(playerInfo)
+function TheClassicRaceTracker:OnNetPlayerInfo(playerInfo, _, shouldBroadcast)
+    if shouldBroadcast == nil then
+        shouldBroadcast = false
+    end
+
+    -- the network message is a list so it's future proof if we wanna aggregate
+    playerInfo = playerInfo[1]
+
     self:HandlePlayerInfo({
         name = playerInfo[1],
         level = playerInfo[2],
         dingedAt = playerInfo[3],
-    }, false)
+    }, shouldBroadcast)
 end
 
 function TheClassicRaceTracker:OnSlashWhoResult(playerInfo)
@@ -214,10 +161,10 @@ function TheClassicRaceTracker:HandlePlayerInfo(playerInfo, shouldBroadcast)
     -- broadcast
     if shouldBroadcast and self.DB.profile.options.networking then
         self.Network:SendObject(self.Config.Network.Events.PlayerInfo,
-                { playerInfo.name, playerInfo.level, playerInfo.dingedAt }, "CHANNEL")
+                {{ playerInfo.name, playerInfo.level, playerInfo.dingedAt }, }, "CHANNEL")
         if IsInGuild() then
             self.Network:SendObject(self.Config.Network.Events.PlayerInfo,
-                    { playerInfo.name, playerInfo.level, playerInfo.dingedAt }, "GUILD")
+                    {{ playerInfo.name, playerInfo.level, playerInfo.dingedAt }, }, "GUILD")
         end
     end
 

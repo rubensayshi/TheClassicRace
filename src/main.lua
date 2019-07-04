@@ -19,6 +19,8 @@ local LibStub = _G.LibStub
 ---       manages the leaderboard based on events
 ---@field ChatNotifier  TheClassicRaceChatNotifier
 ---       writes notifications in chat window based on events
+---@field Sync  TheClassicRaceSync
+---       handles syncing when coming online
 ---@field StatusFrame   TheClassicRaceStatusFrame
 ---       GUI element to display the leaderboard
 ---@field DefaultDB     TheClassicRaceDefaultDB
@@ -40,6 +42,7 @@ function TheClassicRace:OnInitialize()
     self.Scanner = TheClassicRace.Scanner(self.Core, self.DB, self.EventBus, who)
     self.Tracker = TheClassicRace.Tracker(TheClassicRace.Config, self.Core, self.DB, self.EventBus, self.Network)
     self.ChatNotifier = TheClassicRace.ChatNotifier(TheClassicRace.Config, self.Core, self.DB, self.EventBus)
+    self.Sync = TheClassicRace.Sync(TheClassicRace.Config, self.Core, self.DB, self.EventBus, self.Network)
     self.StatusFrame = TheClassicRace.StatusFrame(TheClassicRace.Config, self.Core, self.DB, self.EventBus)
 
     self:DebugPrint("me: " .. self.Core:RealMe())
@@ -55,7 +58,7 @@ function TheClassicRace:OnEnable()
     self:DebugPrint("me: " .. self.Core:RealMe())
 
     -- request an update of data
-    self.Tracker:RequestUpdate()
+    self.Sync:InitSync()
 
     -- start scanner
     self.Scanner:InitTicker()

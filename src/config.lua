@@ -19,8 +19,10 @@ local TheClassicRaceConfig = {
     MaxLevel = 60,
     MaxLeaderboardSize = 50,
 
-    -- RequestUpdate throttle time window
-    Throttle = 60,
+    -- OfferSync throttle time window
+    RequestSyncWait = 5,
+    RetrySyncWait = 30,
+    OfferSyncThrottle = 30,
 
     AceConfig = "The Classic Race",
     LDB = "TheClassicRace",
@@ -32,8 +34,11 @@ local TheClassicRaceConfig = {
             Id = nil, -- will be set at runtime to channel ID if joined
         },
         Events = {
-            PlayerInfo = "TCRACE_NET_PLAYER_INFO",
-            RequestUpdate = "TCRACE_NET_REQUEST_UPDATE",
+            PlayerInfo = "PINFO",
+            RequestSync = "REQSYNC",
+            OfferSync = "OFFERSYNC",
+            StartSync = "STARTSYNC",
+            SyncPayload = "SYNC",
         },
     },
     Events = {
