@@ -13,7 +13,7 @@ local LibStub = _G.LibStub
 ---       event bus to facilitate communication between components
 ---@field Network       TheClassicRaceNetwork
 ---       bridge between AceComms and our EventBus
----@field Updater       TheClassicRaceUpdater
+---@field Scanner       TheClassicRaceScanner
 ---       contains ticker to start Scans and publishes events based of Scan results
 ---@field Tracker       TheClassicRaceTracker
 ---       manages the leaderboard based on events
@@ -37,7 +37,7 @@ function TheClassicRace:OnInitialize()
     self.Core = TheClassicRace.Core(player, realm)
     self.EventBus = TheClassicRace.EventBus()
     self.Network = TheClassicRace.Network(self.Core, self.EventBus)
-    self.Updater = TheClassicRace.Updater(self.Core, self.DB, self.EventBus, who)
+    self.Scanner = TheClassicRace.Scanner(self.Core, self.DB, self.EventBus, who)
     self.Tracker = TheClassicRace.Tracker(TheClassicRace.Config, self.Core, self.DB, self.EventBus, self.Network)
     self.ChatNotifier = TheClassicRace.ChatNotifier(TheClassicRace.Config, self.Core, self.DB, self.EventBus)
     self.StatusFrame = TheClassicRace.StatusFrame(TheClassicRace.Config, self.Core, self.DB, self.EventBus)
@@ -57,9 +57,9 @@ function TheClassicRace:OnEnable()
     -- request an update of data
     self.Tracker:RequestUpdate()
 
-    -- start updater
-    self.Updater:InitTicker()
-    self.Updater:StartScan()
+    -- start scanner
+    self.Scanner:InitTicker()
+    self.Scanner:StartScan()
 end
 
 --[[

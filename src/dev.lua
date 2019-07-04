@@ -12,7 +12,7 @@ function TheClassicRace:slashtcr(input)
 
     --[[SCAN]]--
     if action == "scan" then
-        self.Updater:StartScan()
+        self.Scanner:StartScan()
 
     --[[RESET]]--
     elseif action == "reset" then

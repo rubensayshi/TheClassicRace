@@ -9,27 +9,27 @@ local LibWho = LibStub("LibWho-2.0")
 local C_Timer, CreateFrame = _G.C_Timer, _G.CreateFrame
 
 --[[
-Updater is responsible for periodically doing a Scan to get updated results
+Scanner is responsible for periodically doing a Scan to get updated results
 and relaying that back to the rest of the system through the EventBus
 
 This is also the place where we have the LibWho specific code, so it's not being unittested atm ...
 so it would be good if we can keep it small
 ]]--
----@class TheClassicRaceUpdater
+---@class TheClassicRaceScanner
 ---@field DB table<string, table>
 ---@field Core TheClassicRaceCore
 ---@field EventBus TheClassicRaceEventBus
-local TheClassicRaceUpdater = {}
-TheClassicRaceUpdater.__index = TheClassicRaceUpdater
-TheClassicRace.Updater = TheClassicRaceUpdater
-setmetatable(TheClassicRaceUpdater, {
+local TheClassicRaceScanner = {}
+TheClassicRaceScanner.__index = TheClassicRaceScanner
+TheClassicRace.Scanner = TheClassicRaceScanner
+setmetatable(TheClassicRaceScanner, {
     __call = function(cls, ...)
         return cls.new(...)
     end,
 })
 
-function TheClassicRaceUpdater.new(Core, DB, EventBus)
-    local self = setmetatable({}, TheClassicRaceUpdater)
+function TheClassicRaceScanner.new(Core, DB, EventBus)
+    local self = setmetatable({}, TheClassicRaceScanner)
 
     self.Core = Core
     self.DB = DB
@@ -62,7 +62,8 @@ function TheClassicRaceUpdater.new(Core, DB, EventBus)
 
     return self
 end
-function TheClassicRaceUpdater:OnPlayerLevelUp(level)
+
+function TheClassicRaceScanner:OnPlayerLevelUp(level)
     TheClassicRace:DebugPrint("OnPlayerLevelUp(" .. tostring(level) .. ")")
 
     -- we fake an /who result
@@ -72,7 +73,7 @@ function TheClassicRaceUpdater:OnPlayerLevelUp(level)
     })
 end
 
-function TheClassicRaceUpdater:ProcessWhoResult(result)
+function TheClassicRaceScanner:ProcessWhoResult(result)
     -- filter out nils, seems to be a possibility ...
     result = TheClassicRace.list.filter(result, function (player)
         return player ~= nil and player.Name ~= nil and player.Level ~= nil
@@ -97,7 +98,7 @@ function TheClassicRaceUpdater:ProcessWhoResult(result)
     end
 end
 
-function TheClassicRaceUpdater:InitTicker()
+function TheClassicRaceScanner:InitTicker()
     -- don't setup ticker when we know the race has finished
     if self.DB.realm.finished then
         return
@@ -112,7 +113,7 @@ function TheClassicRaceUpdater:InitTicker()
     end)
 end
 
-function TheClassicRaceUpdater:StartScan()
+function TheClassicRaceScanner:StartScan()
     -- don't scan when we know the race has finished
     if self.DB.realm.finished then
         return
