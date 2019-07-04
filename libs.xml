@@ -6,5 +6,6 @@
     <Include file="libs\AceAddon\AceAddon-3.0.xml"/>
     <Include file="libs\AceGUI\AceGUI-3.0.xml"/>
     <Include file="libs\AceConfig\AceConfig-3.0.xml"/>
+    <Include file="libs\LibCompress\lib.xml"/>
     <Script file="libs\LibWho\LibWho-2.0\LibWho-2.0.lua"/>
 </Ui>

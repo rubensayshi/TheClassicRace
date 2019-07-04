@@ -11,7 +11,7 @@ dofile("libs/AceDB/AceDB-3.0.lua")
 dofile("libs/AceSerializer/AceSerializer-3.0.lua")
 dofile("libs/AceComm/ChatThrottleLib.lua")
 dofile("libs/AceComm/AceComm-3.0.lua")
---require("libs/LibWho-2.0/LibWho-2.0.lua")
+dofile("tests/stubs/libcompressmock.lua")
 
 -- addon
 TheClassicRace = {}

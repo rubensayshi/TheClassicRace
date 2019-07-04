@@ -10,6 +10,7 @@ externals:
     libs/AceSerializer: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceSerializer-3.0
     libs/LibDBIcon: https://repos.wowace.com/wow/libdbicon-1-0/trunk/LibDBIcon-1.0
     libs/LibWho: svn://svn.wowace.com/wow/wholib/mainline/trunk
+    libs/LibCompress: svn://svn.wowace.com/wow/libcompress/mainline/trunk
 
 ignore:
     - tests
