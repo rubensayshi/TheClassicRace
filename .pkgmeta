@@ -12,6 +12,8 @@ externals:
     libs/LibWho: svn://svn.wowace.com/wow/wholib/mainline/trunk
     libs/LibCompress: svn://svn.wowace.com/wow/libcompress/mainline/trunk
 
+
+
 ignore:
     - tests
     - *luacov*

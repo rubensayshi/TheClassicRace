@@ -6,7 +6,8 @@ local CreateFrame, GetChannelList, GetNumDisplayChannels = _G.CreateFrame, _G.Ge
 
 -- Libs
 local LibStub = _G.LibStub
-local Serializer = LibStub:GetLibrary("AceSerializer-3.0")
+-- we use a custom version of AceSerializer that is better optimized for our payloads
+local AceSerializer = LibStub:GetLibrary("AceSerializer-3.0-TCR")
 local AceComm = LibStub:GetLibrary("AceComm-3.0")
 local LibCompress = LibStub:GetLibrary("LibCompress")
 local EncodeTable = LibCompress:GetAddonEncodeTable()
@@ -104,7 +105,7 @@ function TheClassicRaceNetwork:HandleAddonMessage(...)
     local decoded = EncodeTable:Decode(message)
     local decompressed, _ = LibCompress:Decompress(decoded)
 
-    local _, object = Serializer:Deserialize(decompressed)
+    local _, object = AceSerializer:Deserialize(decompressed)
     local event, payload = object[1], object[2]
 
     TheClassicRace:TracePrint("Received Network Event: " .. event .. " From: " .. sender)
@@ -126,7 +127,7 @@ function TheClassicRaceNetwork:SendObject(event, object, channel, target, prio)
         prio = "BULK"
     end
 
-    local payload = Serializer:Serialize({event, object})
+    local payload = AceSerializer:Serialize({event, object})
     local compressed = LibCompress:CompressHuffman(payload)
     local encoded = EncodeTable:Encode(compressed)
 
