@@ -100,7 +100,7 @@ end
 
 function TheClassicRaceScanner:InitTicker()
     -- don't setup ticker when we know the race has finished
-    if self.DB.realm.finished then
+    if self.DB.factionrealm.finished then
         return
     end
 
@@ -115,7 +115,7 @@ end
 
 function TheClassicRaceScanner:StartScan()
     -- don't scan when we know the race has finished
-    if self.DB.realm.finished then
+    if self.DB.factionrealm.finished then
         return
     end
 
@@ -135,8 +135,8 @@ function TheClassicRaceScanner:StartScan()
         LibWho:Who(min .. "-" .. max, { queue = LibWho.WHOLIB_QUERY_QUIET, callback = cb })
     end
 
-    local min = self.DB.realm.levelThreshold
-    local prevhighestlvl = self.DB.realm.highestLevel
+    local min = self.DB.factionrealm.levelThreshold
+    local prevhighestlvl = self.DB.factionrealm.highestLevel
     local max = TheClassicRace.Config.MaxLevel
 
     self.Scan = TheClassicRace.Scan(self.Core, self.DB, self.EventBus, who, min, prevhighestlvl, max)

@@ -248,7 +248,7 @@ describe("Sync", function()
         local networkSpy = spy.on(network, "SendObject")
 
         -- mark race finished
-        db.realm.finished = true
+        db.factionrealm.finished = true
 
         sync:InitSync()
 
@@ -258,7 +258,7 @@ describe("Sync", function()
     it("produces proper payload", function()
         local networkSpy = spy.on(network, "SendObject")
 
-        db.realm.leaderboard = {
+        db.factionrealm.leaderboard = {
             {name = "Nub1", level = 5, dingedAt = time},
             {name = "Nub2", level = 5, dingedAt = time},
             {name = "Nub3", level = 5, dingedAt = time},

@@ -53,16 +53,16 @@ end
 
 function TheClassicRaceTracker:OnLeaderboardSizeDecreased()
     -- truncate leaderboard to match size
-    while #self.DB.realm.leaderboard > self.DB.profile.options.leaderboardSize do
-        table.remove(self.DB.realm.leaderboard)
+    while #self.DB.factionrealm.leaderboard > self.DB.profile.options.leaderboardSize do
+        table.remove(self.DB.factionrealm.leaderboard)
     end
 
     self.EventBus:PublishEvent(self.Config.Events.RefreshGUI)
 end
 
 function TheClassicRaceTracker:RaceFinished()
-    if not self.DB.realm.finished then
-        self.DB.realm.finished = true
+    if not self.DB.factionrealm.finished then
+        self.DB.factionrealm.finished = true
 
         self.EventBus:PublishEvent(self.Config.Events.RaceFinished)
     end
@@ -92,14 +92,14 @@ HandlePlayerInfo updates the leaderboard and triggers notifications accordingly
 ]]--
 function TheClassicRaceTracker:HandlePlayerInfo(playerInfo, shouldBroadcast)
     -- don't process more player info when we know the race has finished
-    if self.DB.realm.finished then
+    if self.DB.factionrealm.finished then
         return
     end
 
     TheClassicRace:DebugPrint("HandlePlayerInfo: " .. playerInfo.name .. " lvl" .. playerInfo.level)
     -- ignore players below our lower bound threshold
-    if playerInfo.level < self.DB.realm.levelThreshold then
-        TheClassicRace:DebugPrint("Ignored player info < lvl" .. self.DB.realm.levelThreshold)
+    if playerInfo.level < self.DB.factionrealm.levelThreshold then
+        TheClassicRace:DebugPrint("Ignored player info < lvl" .. self.DB.factionrealm.levelThreshold)
         return
     end
 
@@ -111,7 +111,7 @@ function TheClassicRaceTracker:HandlePlayerInfo(playerInfo, shouldBroadcast)
     -- doing this O(n) isn't very efficient, but considering the small size of the leaderboard this is more than fine
     local insertAtRank = nil
     local previousRank = nil
-    for rank, player in ipairs(self.DB.realm.leaderboard) do
+    for rank, player in ipairs(self.DB.factionrealm.leaderboard) do
         -- find the place where to insert the new player
         if insertAtRank == nil and playerInfo.level > player.level then
             insertAtRank = rank
@@ -124,7 +124,7 @@ function TheClassicRaceTracker:HandlePlayerInfo(playerInfo, shouldBroadcast)
     end
 
     local isNew = previousRank == nil
-    local isDing = not isNew and playerInfo.level > self.DB.realm.leaderboard[previousRank].level
+    local isDing = not isNew and playerInfo.level > self.DB.factionrealm.leaderboard[previousRank].level
 
     -- no change
     if not isNew and not isDing then
@@ -132,8 +132,8 @@ function TheClassicRaceTracker:HandlePlayerInfo(playerInfo, shouldBroadcast)
     end
 
     -- grow the leaderboard up until the max size
-    if insertAtRank == nil and #self.DB.realm.leaderboard < self.DB.profile.options.leaderboardSize then
-        insertAtRank = #self.DB.realm.leaderboard + 1
+    if insertAtRank == nil and #self.DB.factionrealm.leaderboard < self.DB.profile.options.leaderboardSize then
+        insertAtRank = #self.DB.factionrealm.leaderboard + 1
     end
 
     -- not high enough for leaderboard
@@ -143,19 +143,19 @@ function TheClassicRaceTracker:HandlePlayerInfo(playerInfo, shouldBroadcast)
 
     -- remove from previous rank
     if previousRank ~= nil then
-        table.remove(self.DB.realm.leaderboard, previousRank)
+        table.remove(self.DB.factionrealm.leaderboard, previousRank)
     end
 
     -- add at new rank
-    table.insert(self.DB.realm.leaderboard, insertAtRank, {
+    table.insert(self.DB.factionrealm.leaderboard, insertAtRank, {
         name = playerInfo.name,
         level = playerInfo.level,
         dingedAt = playerInfo.dingedAt,
     })
 
     -- truncate when leaderboard reached max size
-    while #self.DB.realm.leaderboard > self.DB.profile.options.leaderboardSize do
-        table.remove(self.DB.realm.leaderboard)
+    while #self.DB.factionrealm.leaderboard > self.DB.profile.options.leaderboardSize do
+        table.remove(self.DB.factionrealm.leaderboard)
     end
 
     -- broadcast
@@ -174,13 +174,13 @@ function TheClassicRaceTracker:HandlePlayerInfo(playerInfo, shouldBroadcast)
     end
 
     -- update highest level
-    self.DB.realm.highestLevel = math.max(self.DB.realm.highestLevel, playerInfo.level)
+    self.DB.factionrealm.highestLevel = math.max(self.DB.factionrealm.highestLevel, playerInfo.level)
 
     -- we only care about levels >= our bottom ranked on the leaderboard
-    if #self.DB.realm.leaderboard >= self.DB.profile.options.leaderboardSize then
-        self.DB.realm.levelThreshold = self.DB.realm.leaderboard[#self.DB.realm.leaderboard].level
+    if #self.DB.factionrealm.leaderboard >= self.DB.profile.options.leaderboardSize then
+        self.DB.factionrealm.levelThreshold = self.DB.factionrealm.leaderboard[#self.DB.factionrealm.leaderboard].level
 
-        if self.DB.realm.levelThreshold == self.Config.MaxLevel then
+        if self.DB.factionrealm.levelThreshold == self.Config.MaxLevel then
             self:RaceFinished()
         end
     end

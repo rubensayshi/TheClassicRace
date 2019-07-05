@@ -45,7 +45,7 @@ end
 
 function TheClassicRaceSync:InitSync()
     -- don't request updates when we know the race has finished
-    if self.DB.realm.finished then
+    if self.DB.factionrealm.finished then
         return
     end
     -- don't request updates when we've disabled networking
@@ -140,7 +140,7 @@ end
 function TheClassicRaceSync:Sync(syncTo)
     -- @TODO: compress?
     local payload = {}
-    for _, playerInfo in ipairs(self.DB.realm.leaderboard) do
+    for _, playerInfo in ipairs(self.DB.factionrealm.leaderboard) do
         table.insert(payload, { playerInfo.name, playerInfo.level, playerInfo.dingedAt })
     end
 

@@ -36,10 +36,10 @@ function TheClassicRace:slashtcr(input)
 
     --[[LIST]]--
     elseif action == "list" then
-        TheClassicRace:PPrint("highest level: " .. self.DB.realm.highestLevel)
-        TheClassicRace:PPrint("lower bound threshold: " .. self.DB.realm.levelThreshold)
+        TheClassicRace:PPrint("highest level: " .. self.DB.factionrealm.highestLevel)
+        TheClassicRace:PPrint("lower bound threshold: " .. self.DB.factionrealm.levelThreshold)
 
-        for rank, playerInfo in ipairs(self.DB.realm.leaderboard) do
+        for rank, playerInfo in ipairs(self.DB.factionrealm.leaderboard) do
             print(" - #" .. rank .. " " .. playerInfo.name .. " lvl" .. playerInfo.level)
         end
 

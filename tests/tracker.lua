@@ -58,21 +58,21 @@ describe("Tracker", function()
             tracker:HandlePlayerInfo({name = "Nub4", level = 5}, false)
             tracker:HandlePlayerInfo({name = "Nub5", level = 5}, false)
 
-            assert.equals(5, #db.realm.leaderboard)
+            assert.equals(5, #db.factionrealm.leaderboard)
             assert.same({
                 {name = "Nub1", level = 5, dingedAt = time},
                 {name = "Nub2", level = 5, dingedAt = time},
                 {name = "Nub3", level = 5, dingedAt = time},
                 {name = "Nub4", level = 5, dingedAt = time},
                 {name = "Nub5", level = 5, dingedAt = time},
-            }, db.realm.leaderboard)
+            }, db.factionrealm.leaderboard)
         end)
 
         it("doesn't add duplicates", function()
             tracker:HandlePlayerInfo({name = "Nub1", level = 5}, false)
             tracker:HandlePlayerInfo({name = "Nub1", level = 5}, false)
 
-            assert.equals(1, #db.realm.leaderboard)
+            assert.equals(1, #db.factionrealm.leaderboard)
         end)
 
         it("doesn't add beyond max", function()
@@ -83,14 +83,14 @@ describe("Tracker", function()
             tracker:HandlePlayerInfo({name = "Nub5", level = 5}, false)
             -- max
             tracker:HandlePlayerInfo({name = "Nub6", level = 5}, false)
-            assert.equals(5, #db.realm.leaderboard)
+            assert.equals(5, #db.factionrealm.leaderboard)
             assert.same({
                 {name = "Nub1", level = 5, dingedAt = time},
                 {name = "Nub2", level = 5, dingedAt = time},
                 {name = "Nub3", level = 5, dingedAt = time},
                 {name = "Nub4", level = 5, dingedAt = time},
                 {name = "Nub5", level = 5, dingedAt = time},
-            }, db.realm.leaderboard)
+            }, db.factionrealm.leaderboard)
         end)
 
         it("truncates when config is decreased", function()
@@ -102,27 +102,27 @@ describe("Tracker", function()
             tracker:HandlePlayerInfo({name = "Nub6", level = 5}, false)
 
             -- leaderboard is capped at 5
-            assert.equals(5, #db.realm.leaderboard)
+            assert.equals(5, #db.factionrealm.leaderboard)
 
             -- adjust the option
             db.profile.options.leaderboardSize = 4
 
             -- nothing changed yet until we fire event
-            assert.equals(5, #db.realm.leaderboard)
+            assert.equals(5, #db.factionrealm.leaderboard)
 
             -- fire event
             eventbus:PublishEvent(config.Events.LeaderboardSizeDecreased)
 
             -- leaderboard should be truncated
-            assert.equals(4, #db.realm.leaderboard)
+            assert.equals(4, #db.factionrealm.leaderboard)
         end)
 
         it("bumps on ding", function()
             tracker:HandlePlayerInfo({name = "Nub1", level = 5}, false)
             tracker:HandlePlayerInfo({name = "Nub1", level = 6}, false)
 
-            assert.equals(1, #db.realm.leaderboard)
-            assert.equals(6, db.realm.leaderboard[1].level)
+            assert.equals(1, #db.factionrealm.leaderboard)
+            assert.equals(6, db.factionrealm.leaderboard[1].level)
         end)
 
         it("reorders on ding", function()
@@ -131,12 +131,12 @@ describe("Tracker", function()
             tracker:HandlePlayerInfo({name = "Nub3", level = 5}, false)
 
             tracker:HandlePlayerInfo({name = "Nub2", level = 6}, false)
-            assert.equals(3, #db.realm.leaderboard)
+            assert.equals(3, #db.factionrealm.leaderboard)
             assert.same({
                 {name = "Nub2", level = 6, dingedAt = time},
                 {name = "Nub1", level = 5, dingedAt = time},
                 {name = "Nub3", level = 5, dingedAt = time},
-            }, db.realm.leaderboard)
+            }, db.factionrealm.leaderboard)
         end)
 
         it("truncates on ding", function()
@@ -147,14 +147,14 @@ describe("Tracker", function()
             tracker:HandlePlayerInfo({name = "Nub5", level = 5}, false)
 
             tracker:HandlePlayerInfo({name = "Nub6", level = 6}, false)
-            assert.equals(5, #db.realm.leaderboard)
+            assert.equals(5, #db.factionrealm.leaderboard)
             assert.same({
                 {name = "Nub6", level = 6, dingedAt = time},
                 {name = "Nub1", level = 5, dingedAt = time},
                 {name = "Nub2", level = 5, dingedAt = time},
                 {name = "Nub3", level = 5, dingedAt = time},
                 {name = "Nub4", level = 5, dingedAt = time},
-            }, db.realm.leaderboard)
+            }, db.factionrealm.leaderboard)
         end)
 
         it("should broadcast internal event", function()

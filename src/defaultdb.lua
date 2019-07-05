@@ -12,7 +12,7 @@ local TheClassicRaceDefaultDB = {
             leaderboardSize = TheClassicRace.Config.MaxLeaderboardSize,
         },
     },
-    realm = {
+    factionrealm = {
         finished = false,
         levelThreshold = 2,
         highestLevel = 1,

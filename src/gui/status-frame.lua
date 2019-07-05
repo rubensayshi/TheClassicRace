@@ -99,10 +99,10 @@ function TheClassicRaceStatusFrame:Render()
     self.frame:AddChild(frame)
 
     -- display the leader
-    if #self.DB.realm.leaderboard > 0 then
+    if #self.DB.factionrealm.leaderboard > 0 then
         -- determine your own rank
         local selfRank = nil
-        for rank, playerInfo in ipairs(self.DB.realm.leaderboard) do
+        for rank, playerInfo in ipairs(self.DB.factionrealm.leaderboard) do
             if playerInfo.name == self.Core:Me() then
                 selfRank = rank
                 break
@@ -113,14 +113,14 @@ function TheClassicRaceStatusFrame:Render()
         if selfRank ~= nil and selfRank == 1 then
             local leader = AceGUI:Create("Label")
             leader:SetFullWidth(true)
-            leader:SetText(WHITE .. "You are #1!" .. SEYELLOW .. " lvl" .. self.DB.realm.leaderboard[1].level)
+            leader:SetText(WHITE .. "You are #1!" .. SEYELLOW .. " lvl" .. self.DB.factionrealm.leaderboard[1].level)
             leader:SetFont(GameFontNormalLarge:GetFont())
             leader.label:SetJustifyH("CENTER")
             frame:AddChild(leader)
         else
             local leader = AceGUI:Create("Label")
             leader:SetFullWidth(true)
-            leader:SetText(WHITE .. "#1 " .. self.DB.realm.leaderboard[1].name .. SEYELLOW .. " lvl" .. self.DB.realm.leaderboard[1].level)
+            leader:SetText(WHITE .. "#1 " .. self.DB.factionrealm.leaderboard[1].name .. SEYELLOW .. " lvl" .. self.DB.factionrealm.leaderboard[1].level)
             leader:SetFont(GameFontNormalLarge:GetFont())
             leader.label:SetJustifyH("CENTER")
             frame:AddChild(leader)
@@ -130,7 +130,7 @@ function TheClassicRaceStatusFrame:Render()
         if selfRank ~= nil and selfRank > 1 then
             local you = AceGUI:Create("Label")
             you:SetFullWidth(true)
-            you:SetText(WHITE .. "You are #" .. selfRank .. "!" .. SEYELLOW .. " lvl" .. self.DB.realm.leaderboard[selfRank].level)
+            you:SetText(WHITE .. "You are #" .. selfRank .. "!" .. SEYELLOW .. " lvl" .. self.DB.factionrealm.leaderboard[selfRank].level)
             you:SetFont(GameFontNormalLarge:GetFont())
             you.label:SetJustifyH("CENTER")
             frame:AddChild(you)
@@ -149,7 +149,7 @@ function TheClassicRaceStatusFrame:Render()
     scroll:SetFullHeight(true)
     scrolltainer:AddChild(scroll)
 
-    for rank, playerInfo in ipairs(self.DB.realm.leaderboard) do
+    for rank, playerInfo in ipairs(self.DB.factionrealm.leaderboard) do
         if rank ~= 1 then
             local player = AceGUI:Create("Label")
             player:SetText(WHITE .. "#" .. rank .. " " .. playerInfo.name .. SEYELLOW .. " lvl" .. playerInfo.level)
