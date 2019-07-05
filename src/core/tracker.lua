@@ -35,9 +35,10 @@ function TheClassicRaceTracker.new(Config, Core, DB, EventBus, Network)
     self.throttles = {}
 
     -- subscribe to network events
-    EventBus:RegisterCallback(self.Config.Network.Events.PlayerInfo, self, self.OnNetPlayerInfo)
+    EventBus:RegisterCallback(self.Config.Network.Events.PlayerInfoBatch, self, self.OnNetPlayerInfoBatch)
     -- subscribe to local events
     EventBus:RegisterCallback(self.Config.Events.SlashWhoResult, self, self.OnSlashWhoResult)
+    EventBus:RegisterCallback(self.Config.Events.SyncResult, self, self.OnSyncResult)
     EventBus:RegisterCallback(self.Config.Events.ScanFinished, self, self.OnScanFinished)
     EventBus:RegisterCallback(self.Config.Events.LeaderboardSizeDecreased, self, self.OnLeaderboardSizeDecreased)
 
@@ -68,36 +69,80 @@ function TheClassicRaceTracker:RaceFinished()
     end
 end
 
-function TheClassicRaceTracker:OnNetPlayerInfo(playerInfo, _, shouldBroadcast)
+function TheClassicRaceTracker:OnNetPlayerInfoBatch(playerInfoBatch, _, shouldBroadcast)
+    -- ignore data received when we've disabled networking
+    if not self.DB.profile.options.networking then
+        return
+    end
+
     if shouldBroadcast == nil then
         shouldBroadcast = false
     end
 
-    -- the network message is a list so it's future proof if we wanna aggregate
-    playerInfo = playerInfo[1]
+    -- last entry is boolean isRebroadcast
+    local isRebroadcast = table.remove(playerInfoBatch, #playerInfoBatch)
 
-    self:HandlePlayerInfo({
-        name = playerInfo[1],
-        level = playerInfo[2],
-        dingedAt = playerInfo[3],
-        classIndex = playerInfo[4],
-    }, shouldBroadcast)
+    local normalizedPlayerInfoBatch = {}
+    for idx, playerInfo in ipairs(playerInfoBatch) do
+        normalizedPlayerInfoBatch[idx] = {
+            name = playerInfo[1],
+            level = playerInfo[2],
+            dingedAt = playerInfo[3],
+            classIndex = playerInfo[4],
+        }
+    end
+
+    self:ProcessPlayerInfoBatch(normalizedPlayerInfoBatch, shouldBroadcast, false)
+
+    -- if it wasn't a rebroadcast then it was a /who scan, we can delay our own /who scan a bit
+    if not isRebroadcast then
+        self.EventBus:PublishEvent(self.Config.Events.BumpScan)
+    end
 end
 
-function TheClassicRaceTracker:OnSlashWhoResult(playerInfo)
-    self:HandlePlayerInfo(playerInfo, true)
+function TheClassicRaceTracker:OnSlashWhoResult(playerInfoBatch)
+    self:ProcessPlayerInfoBatch(playerInfoBatch, true, false)
+end
+
+function TheClassicRaceTracker:OnSyncResult(playerInfoBatch, shouldBroadcast)
+    self:ProcessPlayerInfoBatch(playerInfoBatch, shouldBroadcast, true)
+end
+
+function TheClassicRaceTracker:ProcessPlayerInfoBatch(playerInfoBatch, shouldBroadcast, isRebroadcast)
+    local broadcastPayload = {}
+
+    -- the network message can be a list of playerInfo
+    for _, playerInfo in ipairs(playerInfoBatch) do
+        playerInfo = self:ProcessPlayerInfo(playerInfo)
+
+        -- ProcessPlayerInfo will return nil if the player wasn't relevant
+        if playerInfo ~= nil then
+            table.insert(broadcastPayload, { playerInfo.name, playerInfo.level, playerInfo.dingedAt, playerInfo.classIndex })
+        end
+    end
+
+    -- broadcast
+    if shouldBroadcast and #broadcastPayload > 0 and self.DB.profile.options.networking then
+        -- last entry in payload is isRebroadcast
+        broadcastPayload[#broadcastPayload + 1] = isRebroadcast
+
+        self.Network:SendObject(self.Config.Network.Events.PlayerInfoBatch, broadcastPayload, "CHANNEL")
+        if IsInGuild() then
+            self.Network:SendObject(self.Config.Network.Events.PlayerInfoBatch, broadcastPayload, "GUILD")
+        end
+    end
 end
 
 --[[
-HandlePlayerInfo updates the leaderboard and triggers notifications accordingly
+ProcessPlayerInfo updates the leaderboard and triggers notifications accordingly
 ]]--
-function TheClassicRaceTracker:HandlePlayerInfo(playerInfo, shouldBroadcast)
+function TheClassicRaceTracker:ProcessPlayerInfo(playerInfo)
     -- don't process more player info when we know the race has finished
     if self.DB.factionrealm.finished then
         return
     end
 
-    TheClassicRace:DebugPrint("HandlePlayerInfo: " .. playerInfo.name .. " lvl" .. playerInfo.level)
+    TheClassicRace:DebugPrint("ProcessPlayerInfo: " .. playerInfo.name .. " lvl" .. playerInfo.level)
     -- ignore players below our lower bound threshold
     if playerInfo.level < self.DB.factionrealm.levelThreshold then
         TheClassicRace:DebugPrint("Ignored player info < lvl" .. self.DB.factionrealm.levelThreshold)
@@ -168,16 +213,6 @@ function TheClassicRaceTracker:HandlePlayerInfo(playerInfo, shouldBroadcast)
         table.remove(self.DB.factionrealm.leaderboard)
     end
 
-    -- broadcast
-    if shouldBroadcast and self.DB.profile.options.networking then
-        self.Network:SendObject(self.Config.Network.Events.PlayerInfo,
-                {{ playerInfo.name, playerInfo.level, playerInfo.dingedAt, playerInfo.classIndex }, }, "CHANNEL")
-        if IsInGuild() then
-            self.Network:SendObject(self.Config.Network.Events.PlayerInfo,
-                    {{ playerInfo.name, playerInfo.level, playerInfo.dingedAt, playerInfo.classIndex }, }, "GUILD")
-        end
-    end
-
     -- publish internal event
     if isNew or isDing then
         self.EventBus:PublishEvent(self.Config.Events.Ding, playerInfo, insertAtRank)
@@ -194,4 +229,6 @@ function TheClassicRaceTracker:HandlePlayerInfo(playerInfo, shouldBroadcast)
             self:RaceFinished()
         end
     end
+
+    return playerInfo
 end

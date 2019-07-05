@@ -36,6 +36,7 @@ function TheClassicRace:RegisterOptions()
                 type = "group",
                 args = {
                     leaderboardSize = {
+                        order = 1,
                         name = "Number of players to track",
                         desc = "Limit how many players to track for leaderboard and chat notifications",
                         descStyle = "inline",
@@ -56,6 +57,7 @@ function TheClassicRace:RegisterOptions()
                         get = function() return _self.DB.profile.options.leaderboardSize end
                     },
                     enableNotifications = {
+                        order = 2,
                         name = "Enable Notifications",
                         desc = "Enables / disables the notifications in your chat window",
                         descStyle = "inline",
@@ -65,6 +67,7 @@ function TheClassicRace:RegisterOptions()
                         get = function() return _self.DB.profile.options.notifications end
                     },
                     enableNetworking = {
+                        order = 3,
                         name = "Enable Sharing / Receiving Data",
                         desc = "Enables / disables the sharing of data through addon channels",
                         descStyle = "inline",
@@ -73,7 +76,18 @@ function TheClassicRace:RegisterOptions()
                         set = function(_, val) _self.DB.profile.options.networking = val end,
                         get = function() return _self.DB.profile.options.networking end
                     },
+                    dontBumpScan = {
+                        order = 4,
+                        name = "Always /who query",
+                        desc = "Do a /who scan every 60s even when data was synced from another player",
+                        descStyle = "inline",
+                        width = "full",
+                        type = "toggle",
+                        set = function(_, val) _self.DB.profile.options.dontbump = val end,
+                        get = function() return _self.DB.profile.options.dontbump end
+                    },
                     reset = {
+                        order = 5,
                         name = "Reset Data",
                         type = "execute",
                         func = function()

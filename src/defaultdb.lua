@@ -9,6 +9,7 @@ local TheClassicRaceDefaultDB = {
                 hide = false,
             },
             networking = true,
+            dontbump = false,
             notifications = true,
             leaderboardSize = TheClassicRace.Config.MaxLeaderboardSize,
         },

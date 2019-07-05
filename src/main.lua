@@ -61,9 +61,8 @@ function TheClassicRace:OnEnable()
     -- request an update of data
     self.Sync:InitSync()
 
-    -- start scanner
+    -- init the scanner ticker, first scan will happen when the ticker ticks
     self.Scanner:InitTicker()
-    self.Scanner:StartScan()
 
     if self.DB.profile.firsttime then
         self.DB.profile.firsttime = false

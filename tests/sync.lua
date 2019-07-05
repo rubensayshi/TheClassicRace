@@ -289,16 +289,14 @@ describe("Sync", function()
             {"Nub5", 5, time, 4},
         }, "Dude")
 
-        assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), NetEvents.PlayerInfo,
-                match.is_same({{"Nub1", 5, time, 8, }}), "Dude", false)
-        assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), NetEvents.PlayerInfo,
-                match.is_same({{"Nub2", 5, time, 7, }}), "Dude", false)
-        assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), NetEvents.PlayerInfo,
-                match.is_same({{"Nub3", 5, time, 6, }}), "Dude", false)
-        assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), NetEvents.PlayerInfo,
-                match.is_same({{"Nub4", 5, time, 5, }}), "Dude", false)
-        assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), NetEvents.PlayerInfo,
-                match.is_same({{"Nub5", 5, time, 4, }}), "Dude", false)
-        assert.spy(eventBusSpy).called_at_most(5)
+        assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), Events.SyncResult,
+                match.is_same({
+                    {"Nub1", 5, time, 8},
+                    {"Nub2", 5, time, 7},
+                    {"Nub3", 5, time, 6},
+                    {"Nub4", 5, time, 5},
+                    {"Nub5", 5, time, 4},
+                }), false)
+        assert.spy(eventBusSpy).called_at_most(1)
     end)
 end)

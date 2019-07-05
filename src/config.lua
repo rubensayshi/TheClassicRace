@@ -79,7 +79,7 @@ local TheClassicRaceConfig = {
             Id = nil, -- will be set at runtime to channel ID if joined
         },
         Events = {
-            PlayerInfo = "PINFO",
+            PlayerInfoBatch = "PINFOB",
             RequestSync = "REQSYNC",
             OfferSync = "OFFERSYNC",
             StartSync = "STARTSYNC",
@@ -88,6 +88,8 @@ local TheClassicRaceConfig = {
     },
     Events = {
         SlashWhoResult = "WHO_RESULT",
+        SyncResult = "SYNC_RESULT",
+        BumpScan = "BUMP_SCAN",
         Ding = "DING",
         -- ScanFinished(endofrace)
         -- should use RaceFinished though if interested in when the race is finished,

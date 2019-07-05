@@ -138,10 +138,9 @@ function TheClassicRaceSync:DoSync()
 end
 
 function TheClassicRaceSync:Sync(syncTo)
-    -- @TODO: compress?
     local payload = {}
-    for _, playerInfo in ipairs(self.DB.factionrealm.leaderboard) do
-        table.insert(payload, { playerInfo.name, playerInfo.level, playerInfo.dingedAt, playerInfo.classIndex })
+    for idx, playerInfo in ipairs(self.DB.factionrealm.leaderboard) do
+        payload[idx] = { playerInfo.name, playerInfo.level, playerInfo.dingedAt, playerInfo.classIndex }
     end
 
     self.Network:SendObject(self.Config.Network.Events.SyncPayload, payload, "WHISPER", syncTo)
@@ -165,9 +164,7 @@ function TheClassicRaceSync:OnNetSyncPayload(payload, sender)
     local shouldBroadcast = self.isReady
 
     -- push into our eventbus as if it was info receive from a PlayerInfo network event
-    for _, playerInfo in ipairs(payload) do
-        self.EventBus:PublishEvent(self.Config.Network.Events.PlayerInfo, {playerInfo, }, sender, shouldBroadcast)
-    end
+    self.EventBus:PublishEvent(self.Config.Events.SyncResult, payload, shouldBroadcast)
 
     -- mark ourselves as synced up
     if not self.isReady then

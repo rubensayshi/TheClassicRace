@@ -52,11 +52,11 @@ describe("Tracker", function()
 
     describe("leaderboard", function()
         it("adds players", function()
-            tracker:HandlePlayerInfo({name = "Nub1", level = 5, class = "DRUID"}, false)
-            tracker:HandlePlayerInfo({name = "Nub2", level = 5, class = "WARRIOR"}, false)
-            tracker:HandlePlayerInfo({name = "Nub3", level = 5, class = "PALADIN"}, false)
-            tracker:HandlePlayerInfo({name = "Nub4", level = 5, class = "PRIEST"}, false)
-            tracker:HandlePlayerInfo({name = "Nub5", level = 5, classIndex = 6}, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub1", level = 5, class = "DRUID"}, }, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub2", level = 5, class = "WARRIOR"}, }, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub3", level = 5, class = "PALADIN"}, }, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub4", level = 5, class = "PRIEST"}, }, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub5", level = 5, classIndex = 6}, }, false)
 
             assert.equals(5, #db.factionrealm.leaderboard)
             assert.same({
@@ -69,20 +69,20 @@ describe("Tracker", function()
         end)
 
         it("doesn't add duplicates", function()
-            tracker:HandlePlayerInfo({name = "Nub1", level = 5, class = "DRUID"}, false)
-            tracker:HandlePlayerInfo({name = "Nub1", level = 5, class = "DRUID"}, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub1", level = 5, class = "DRUID"}, }, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub1", level = 5, class = "DRUID"}, }, false)
 
             assert.equals(1, #db.factionrealm.leaderboard)
         end)
 
         it("doesn't add beyond max", function()
-            tracker:HandlePlayerInfo({name = "Nub1", level = 5, class = "DRUID"}, false)
-            tracker:HandlePlayerInfo({name = "Nub2", level = 5, class = "DRUID"}, false)
-            tracker:HandlePlayerInfo({name = "Nub3", level = 5, class = "DRUID"}, false)
-            tracker:HandlePlayerInfo({name = "Nub4", level = 5, class = "DRUID"}, false)
-            tracker:HandlePlayerInfo({name = "Nub5", level = 5, class = "DRUID"}, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub1", level = 5, class = "DRUID"}, }, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub2", level = 5, class = "DRUID"}, }, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub3", level = 5, class = "DRUID"}, }, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub4", level = 5, class = "DRUID"}, }, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub5", level = 5, class = "DRUID"}, }, false)
             -- max
-            tracker:HandlePlayerInfo({name = "Nub6", level = 5, class = "DRUID"}, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub6", level = 5, class = "DRUID"}, }, false)
             assert.equals(5, #db.factionrealm.leaderboard)
             assert.same({
                 {name = "Nub1", level = 5, dingedAt = time, classIndex = 11},
@@ -94,12 +94,12 @@ describe("Tracker", function()
         end)
 
         it("truncates when config is decreased", function()
-            tracker:HandlePlayerInfo({name = "Nub1", level = 5, class = "DRUID"}, false)
-            tracker:HandlePlayerInfo({name = "Nub2", level = 5, class = "DRUID"}, false)
-            tracker:HandlePlayerInfo({name = "Nub3", level = 5, class = "DRUID"}, false)
-            tracker:HandlePlayerInfo({name = "Nub4", level = 5, class = "DRUID"}, false)
-            tracker:HandlePlayerInfo({name = "Nub5", level = 5, class = "DRUID"}, false)
-            tracker:HandlePlayerInfo({name = "Nub6", level = 5, class = "DRUID"}, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub1", level = 5, class = "DRUID"}, }, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub2", level = 5, class = "DRUID"}, }, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub3", level = 5, class = "DRUID"}, }, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub4", level = 5, class = "DRUID"}, }, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub5", level = 5, class = "DRUID"}, }, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub6", level = 5, class = "DRUID"}, }, false)
 
             -- leaderboard is capped at 5
             assert.equals(5, #db.factionrealm.leaderboard)
@@ -118,19 +118,19 @@ describe("Tracker", function()
         end)
 
         it("bumps on ding", function()
-            tracker:HandlePlayerInfo({name = "Nub1", level = 5, class = "DRUID"}, false)
-            tracker:HandlePlayerInfo({name = "Nub1", level = 6, class = "DRUID"}, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub1", level = 5, class = "DRUID"}, }, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub1", level = 6, class = "DRUID"}, }, false)
 
             assert.equals(1, #db.factionrealm.leaderboard)
             assert.equals(6, db.factionrealm.leaderboard[1].level)
         end)
 
         it("reorders on ding", function()
-            tracker:HandlePlayerInfo({name = "Nub1", level = 5, class = "DRUID"}, false)
-            tracker:HandlePlayerInfo({name = "Nub2", level = 5, class = "DRUID"}, false)
-            tracker:HandlePlayerInfo({name = "Nub3", level = 5, class = "DRUID"}, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub1", level = 5, class = "DRUID"}, }, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub2", level = 5, class = "DRUID"}, }, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub3", level = 5, class = "DRUID"}, }, false)
 
-            tracker:HandlePlayerInfo({name = "Nub2", level = 6, class = "DRUID"}, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub2", level = 6, class = "DRUID"}, }, false)
             assert.equals(3, #db.factionrealm.leaderboard)
             assert.same({
                 {name = "Nub2", level = 6, dingedAt = time, classIndex = 11},
@@ -140,14 +140,15 @@ describe("Tracker", function()
         end)
 
         it("truncates on ding", function()
-            tracker:HandlePlayerInfo({name = "Nub1", level = 5, class = "DRUID"}, false)
-            tracker:HandlePlayerInfo({name = "Nub2", level = 5, class = "DRUID"}, false)
-            tracker:HandlePlayerInfo({name = "Nub3", level = 5, class = "DRUID"}, false)
-            tracker:HandlePlayerInfo({name = "Nub4", level = 5, class = "DRUID"}, false)
-            tracker:HandlePlayerInfo({name = "Nub5", level = 5, class = "DRUID"}, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub1", level = 5, class = "DRUID"}, }, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub2", level = 5, class = "DRUID"}, }, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub3", level = 5, class = "DRUID"}, }, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub4", level = 5, class = "DRUID"}, }, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub5", level = 5, class = "DRUID"}, }, false)
 
-            tracker:HandlePlayerInfo({name = "Nub6", level = 6, class = "DRUID"}, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub6", level = 6, class = "DRUID"}, }, false)
             assert.equals(5, #db.factionrealm.leaderboard)
+
             assert.same({
                 {name = "Nub6", level = 6, dingedAt = time, classIndex = 11},
                 {name = "Nub1", level = 5, dingedAt = time, classIndex = 11},
@@ -160,23 +161,23 @@ describe("Tracker", function()
         it("should broadcast internal event", function()
             local eventBusSpy = spy.on(eventbus, "PublishEvent")
 
-            tracker:HandlePlayerInfo({name = "Nub1", level = 5, class = "DRUID"}, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub1", level = 5, class = "DRUID"}, }, false)
             assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), config.Events.Ding,
                     match.is_table(), 1)
 
-            tracker:HandlePlayerInfo({name = "Nub1", level = 6, class = "DRUID"}, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub1", level = 6, class = "DRUID"}, }, false)
             assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), config.Events.Ding,
                     match.is_table(), 1)
 
-            tracker:HandlePlayerInfo({name = "Nub2", level = 7, class = "DRUID"}, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub2", level = 7, class = "DRUID"}, }, false)
             assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), config.Events.Ding,
                     match.is_table(), 1)
 
             eventBusSpy:clear()
-            tracker:HandlePlayerInfo({name = "Nub1", level = 6, class = "DRUID"}, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub1", level = 6, class = "DRUID"}, }, false)
             assert.spy(eventBusSpy).was_not_called()
 
-            tracker:HandlePlayerInfo({name = "Nub1", level = 7, class = "DRUID"}, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub1", level = 7, class = "DRUID"}, }, false)
             assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), config.Events.Ding,
                     match.is_table(), 2)
         end)
@@ -184,17 +185,29 @@ describe("Tracker", function()
         it("shouldn't broadcast to network OnNetPlayerInfo", function()
             local networkSpy = spy.on(network, "SendObject")
 
-            tracker:OnNetPlayerInfo({{"Nub1", 5, nil}, })
+            tracker:OnNetPlayerInfoBatch({{"Nub1", 5, nil}, false})
             assert.spy(networkSpy).was_not_called()
+        end)
+
+        it("should bump ticker on OnNetPlayerInfo", function()
+            local eventBusSpy = spy.on(eventbus, "PublishEvent")
+
+            tracker:OnNetPlayerInfoBatch({{"Nub1", 5, nil}, false})
+
+            assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), config.Events.BumpScan)
+            assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), config.Events.Ding,
+                    match.is_table(), 1)
+
+            assert.spy(eventBusSpy).called_at_most(2)
         end)
 
         it("should broadcast to network OnSlashWhoResult", function()
             local networkSpy = spy.on(network, "SendObject")
 
-            tracker:OnSlashWhoResult({name = "Nub1", level = 5, class = "DRUID"})
-            assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.PlayerInfo,
+            tracker:OnSlashWhoResult({{name = "Nub1", level = 5, class = "DRUID"}, })
+            assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.PlayerInfoBatch,
                     match.is_table(), "CHANNEL")
-            assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.PlayerInfo,
+            assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.PlayerInfoBatch,
                     match.is_table(), "GUILD")
         end)
 
@@ -203,8 +216,8 @@ describe("Tracker", function()
 
             _G.SetIsInGuild(false)
 
-            tracker:OnSlashWhoResult({name = "Nub1", level = 5, class = "DRUID"})
-            assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.PlayerInfo,
+            tracker:OnSlashWhoResult({{name = "Nub1", level = 5, class = "DRUID"}, })
+            assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.PlayerInfoBatch,
                     match.is_table(), "CHANNEL")
             assert.spy(networkSpy).called_at_most(1)
         end)

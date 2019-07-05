@@ -60,6 +60,9 @@ function TheClassicRaceScanner.new(Core, DB, EventBus)
     -- register for level up events
     self.Thread:RegisterEvent("PLAYER_LEVEL_UP")
 
+    -- subscribe to local events
+    EventBus:RegisterCallback(TheClassicRace.Config.Events.BumpScan, self, self.OnBumpScan)
+
     return self
 end
 
@@ -67,11 +70,11 @@ function TheClassicRaceScanner:OnPlayerLevelUp(level)
     TheClassicRace:DebugPrint("OnPlayerLevelUp(" .. tostring(level) .. ")")
 
     -- we fake an /who result
-    self.EventBus:PublishEvent(TheClassicRace.Config.Events.SlashWhoResult, {
+    self.EventBus:PublishEvent(TheClassicRace.Config.Events.SlashWhoResult, {{
         name = self.Core:Me(),
         level = level,
         class = self.Core:MyClass(),
-    })
+    }, })
 end
 
 function TheClassicRaceScanner:ProcessWhoResult(result)
@@ -88,17 +91,20 @@ function TheClassicRaceScanner:ProcessWhoResult(result)
         end)
     end
 
-    for _, player in ipairs(result) do
+    local batch = {}
+    for idx, player in ipairs(result) do
         -- Name, Online, Guild, Class, Race, Level, Zone
         local name = self.Core:SplitFullPlayer(player.Name)
 
-        self.EventBus:PublishEvent(TheClassicRace.Config.Events.SlashWhoResult, {
+        batch[idx] = {
             name = name,
             level = player.Level,
             -- @TODO: this is localized so only works on english atm
             class = string.upper(player.Class),
-        })
+        }
     end
+
+    self.EventBus:PublishEvent(TheClassicRace.Config.Events.SlashWhoResult, batch)
 end
 
 function TheClassicRaceScanner:InitTicker()
@@ -111,9 +117,39 @@ function TheClassicRaceScanner:InitTicker()
         return
     end
 
-    self.Ticker = C_Timer.NewTicker(60, function()
+    -- random offset just so that not everyone who logs in after a server restart is completely synced up
+    local randomOffset = math.random(0, 10)
+
+    self.Ticker = C_Timer.NewTicker(60 + randomOffset, function()
         self:StartScan()
     end)
+end
+
+function TheClassicRaceScanner:OnBumpScan()
+    -- don't bump ticker when we know the race has finished
+    if self.DB.realm.finished then
+        return
+    end
+    -- don't bump ticker when we configured it not to
+    if self.DB.profile.options.dontbump then
+        return
+    end
+
+    -- weird, but if this is the case then there's nothing to bump
+    if self.Ticker == nil then
+        return
+    end
+
+    -- don't bump the ticker if the scan scan is in progress
+    if self.Scan ~= nil and not self.Scan:IsDone() then
+        return
+    end
+
+    -- cancel the current ticker
+    self.Ticker:Cancel()
+
+    -- init a new ticker
+    self:InitTicker()
 end
 
 function TheClassicRaceScanner:StartScan()
