@@ -51,35 +51,39 @@ function TheClassicRaceChatNotifier:OnDing(playerInfo, rank)
 end
 
 function TheClassicRaceChatNotifier:OnSelfDing(playerInfo, rank)
+    local chatLink = TheClassicRace:PlayerChatLink(playerInfo.name, "You", self.Core:ClassByIndex(playerInfo.classIndex))
+
     if rank == 1 then
         if playerInfo.level == self.Config.MaxLevel then
-            TheClassicRace:PPrint("Gratz! The race is over! " .. TheClassicRace:PlayerChatLink(playerInfo.name, "You") .. " are the first to reach max level!!")
+            TheClassicRace:PPrint("Gratz! The race is over! " .. chatLink .. " are the first to reach max level!!")
         else
-            TheClassicRace:PPrint("Gratz! " .. TheClassicRace:PlayerChatLink(playerInfo.name, "You") .. " are first to reach level " .. playerInfo.level .. "!")
+            TheClassicRace:PPrint("Gratz! " .. chatLink .. " are first to reach level " .. playerInfo.level .. "!")
         end
     else
         if playerInfo.level == self.Config.MaxLevel then
-            TheClassicRace:PPrint("Gratz!  " .. TheClassicRace:PlayerChatLink(playerInfo.name, "You") .. " reached max level as #" .. rank .. "!")
+            TheClassicRace:PPrint("Gratz!  " .. chatLink .. " reached max level as #" .. rank .. "!")
         else
-            TheClassicRace:PPrint("Gratz! " .. TheClassicRace:PlayerChatLink(playerInfo.name, "You") .. " reached level " .. playerInfo.level .. "! " ..
+            TheClassicRace:PPrint("Gratz! " .. chatLink .. " reached level " .. playerInfo.level .. "! " ..
                     "Currently rank #" .. rank .. " in the race!")
         end
     end
 end
 
 function TheClassicRaceChatNotifier:OnStrangerDing(playerInfo, rank)
+    local chatLink = TheClassicRace:PlayerChatLink(playerInfo.name, nil, self.Core:ClassByIndex(playerInfo.classIndex))
+
     if rank == 1 then
         if playerInfo.level == self.Config.MaxLevel then
-            TheClassicRace:PPrint("The race is over! Gratz to " .. TheClassicRace:PlayerChatLink(playerInfo.name) .. ", first to reach max level!!")
+            TheClassicRace:PPrint("The race is over! Gratz to " .. chatLink .. ", first to reach max level!!")
         else
-            TheClassicRace:PPrint("Gratz to " .. TheClassicRace:PlayerChatLink(playerInfo.name) .. ", " ..
+            TheClassicRace:PPrint("Gratz to " .. chatLink .. ", " ..
                     "first to reach level " .. playerInfo.level .. "!")
         end
     else
         if playerInfo.level == self.Config.MaxLevel then
-            TheClassicRace:PPrint("Gratz to " .. TheClassicRace:PlayerChatLink(playerInfo.name) .. ", reached max level as #" .. rank .. "!")
+            TheClassicRace:PPrint("Gratz to " .. chatLink .. ", reached max level as #" .. rank .. "!")
         else
-            TheClassicRace:PPrint("Gratz to " .. TheClassicRace:PlayerChatLink(playerInfo.name) .. ", reached level " .. playerInfo.level .. "! " ..
+            TheClassicRace:PPrint("Gratz to " .. chatLink .. ", reached level " .. playerInfo.level .. "! " ..
                     "Currently rank #" .. rank .. " in the race!")
         end
     end

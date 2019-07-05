@@ -4,6 +4,18 @@ local TheClassicRace = _G.TheClassicRace
 local TheClassicRaceColors = {
     WHITE = "|cFFFFFFFF",
     SYSTEM_EVENT_YELLOW = "|cFFFFFF00",
+    WARRIOR	    = "|cFFC79C6E",
+    PALADIN	    = "|cFFF58CBA",
+    HUNTER      = "|cFFABD473",
+    ROGUE	    = "|cFFFFF569",
+    PRIEST	    = "|cFFFFFFFF",
+    DEATHKNIGHT = "|cFFC41F3B",
+    SHAMAN	    = "|cFF0070DE",
+    MAGE	    = "|cFF69CCF0",
+    WARLOCK	    = "|cFF9482C9",
+    MONK	    = "|cFF00FF96",
+    DRUID       = "|cFFFF7D0A",
+    DEMONHUNTER = "POO",
 }
 TheClassicRace.Colors = TheClassicRaceColors
 
@@ -26,6 +38,38 @@ local TheClassicRaceConfig = {
 
     AceConfig = "The Classic Race",
     LDB = "TheClassicRace",
+
+    Classes = {
+        "WARRIOR",
+        "PALADIN",
+        "HUNTER",
+        "ROGUE",
+        "PRIEST",
+        "DEATHKNIGHT",
+        "SHAMAN",
+        "MAGE",
+        "WARLOCK",
+        "MONK",
+        "DRUID",
+        "DEMONHUNTER",
+    },
+
+    -- ClassIndexes is inverse of Classes
+    UnknownClassIndex = 0,
+    ClassIndexes = {
+        WARRIOR = 1,
+        PALADIN = 2,
+        HUNTER = 3,
+        ROGUE = 4,
+        PRIEST = 5,
+        DEATHKNIGHT = 6,
+        SHAMAN = 7,
+        MAGE = 8,
+        WARLOCK = 9,
+        MONK = 10,
+        DRUID = 11,
+        DEMONHUNTER = 12,
+    },
 
     Network = {
         Prefix = "TCRace",

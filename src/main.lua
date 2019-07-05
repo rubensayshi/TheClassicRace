@@ -36,14 +36,15 @@ function TheClassicRace:OnInitialize()
     local player, realm = UnitFullName("player")
 
     -- init components (should have minimal side effects)
-    self.Core = TheClassicRace.Core(player, realm)
+    self.Config = TheClassicRace.Config
+    self.Core = TheClassicRace.Core(self.Config, player, realm)
     self.EventBus = TheClassicRace.EventBus()
     self.Network = TheClassicRace.Network(self.Core, self.EventBus)
     self.Scanner = TheClassicRace.Scanner(self.Core, self.DB, self.EventBus, who)
-    self.Tracker = TheClassicRace.Tracker(TheClassicRace.Config, self.Core, self.DB, self.EventBus, self.Network)
-    self.ChatNotifier = TheClassicRace.ChatNotifier(TheClassicRace.Config, self.Core, self.DB, self.EventBus)
-    self.Sync = TheClassicRace.Sync(TheClassicRace.Config, self.Core, self.DB, self.EventBus, self.Network)
-    self.StatusFrame = TheClassicRace.StatusFrame(TheClassicRace.Config, self.Core, self.DB, self.EventBus)
+    self.Tracker = TheClassicRace.Tracker(self.Config, self.Core, self.DB, self.EventBus, self.Network)
+    self.ChatNotifier = TheClassicRace.ChatNotifier(self.Config, self.Core, self.DB, self.EventBus)
+    self.Sync = TheClassicRace.Sync(self.Config, self.Core, self.DB, self.EventBus, self.Network)
+    self.StatusFrame = TheClassicRace.StatusFrame(self.Config, self.Core, self.DB, self.EventBus)
 
     self:DebugPrint("me: " .. self.Core:RealMe())
 end

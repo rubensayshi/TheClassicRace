@@ -8,7 +8,7 @@ local TheClassicRace = _G.TheClassicRace
 The /tcr handler, overwrites with a more advanced development mode /tcr
 --]]
 function TheClassicRace:slashtcr(input)
-    local action, arg1, arg2 = self:GetArgs(input, 3)
+    local action, arg1, arg2, arg3 = self:GetArgs(input, 4)
 
     --[[SCAN]]--
     if action == "scan" then
@@ -49,6 +49,7 @@ function TheClassicRace:slashtcr(input)
         self.EventBus:PublishEvent(self.Config.Events.SlashWhoResult, {
             name = arg1,
             level = tonumber(arg2),
+            class = arg3 or "WARRIOR",
         })
     else
         self:PPrint("Unknown action: " .. tostring(action))

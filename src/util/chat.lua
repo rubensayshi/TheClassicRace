@@ -50,12 +50,17 @@ function TheClassicRace:TracePrintTable(t)
     end
 end
 
-function TheClassicRace:PlayerChatLink(playerName, linkTitle)
+function TheClassicRace:PlayerChatLink(playerName, linkTitle, className)
     if linkTitle == nil then
         linkTitle = playerName
     end
 
-    return TheClassicRace.Colors.SYSTEM_EVENT_YELLOW ..
+    local color = TheClassicRace.Colors.SYSTEM_EVENT_YELLOW
+    if className ~= nil and TheClassicRace.Colors[className] ~= nil then
+        color = TheClassicRace.Colors[className]
+    end
+
+    return color ..
         "|Hplayer:" .. playerName .. "|h[" .. linkTitle .. "]|h" ..
         TheClassicRace.Colors.WHITE
 end

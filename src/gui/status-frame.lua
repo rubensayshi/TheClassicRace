@@ -100,6 +100,8 @@ function TheClassicRaceStatusFrame:Render()
 
     -- display the leader
     if #self.DB.factionrealm.leaderboard > 0 then
+        local leader = self.DB.factionrealm.leaderboard[1]
+
         -- determine your own rank
         local selfRank = nil
         for rank, playerInfo in ipairs(self.DB.factionrealm.leaderboard) do
@@ -111,26 +113,32 @@ function TheClassicRaceStatusFrame:Render()
 
         -- special leader display when you are the leader!
         if selfRank ~= nil and selfRank == 1 then
-            local leader = AceGUI:Create("Label")
-            leader:SetFullWidth(true)
-            leader:SetText(WHITE .. "You are #1!" .. SEYELLOW .. " lvl" .. self.DB.factionrealm.leaderboard[1].level)
-            leader:SetFont(GameFontNormalLarge:GetFont())
-            leader.label:SetJustifyH("CENTER")
-            frame:AddChild(leader)
+            local leaderLabel = AceGUI:Create("Label")
+            leaderLabel:SetFullWidth(true)
+            leaderLabel:SetText(SEYELLOW .. "You" .. WHITE .. " are #1!" .. WHITE .. " lvl" .. leader.level)
+            leaderLabel:SetFont(GameFontNormalLarge:GetFont())
+            leaderLabel.label:SetJustifyH("CENTER")
+            frame:AddChild(leaderLabel)
         else
-            local leader = AceGUI:Create("Label")
-            leader:SetFullWidth(true)
-            leader:SetText(WHITE .. "#1 " .. self.DB.factionrealm.leaderboard[1].name .. SEYELLOW .. " lvl" .. self.DB.factionrealm.leaderboard[1].level)
-            leader:SetFont(GameFontNormalLarge:GetFont())
-            leader.label:SetJustifyH("CENTER")
-            frame:AddChild(leader)
+            local leaderClass = self.Core:ClassByIndex(leader.classIndex)
+            local color = TheClassicRace.Colors[leaderClass]
+            if color == nil then
+                color = WHITE
+            end
+
+            local leaderLabel = AceGUI:Create("Label")
+            leaderLabel:SetFullWidth(true)
+            leaderLabel:SetText(WHITE .. "#1 " .. color .. leader.name .. WHITE .. " lvl" .. leader.level)
+            leaderLabel:SetFont(GameFontNormalLarge:GetFont())
+            leaderLabel.label:SetJustifyH("CENTER")
+            frame:AddChild(leaderLabel)
         end
 
         -- special added line if you are on the leaderboard but not the leader
         if selfRank ~= nil and selfRank > 1 then
             local you = AceGUI:Create("Label")
             you:SetFullWidth(true)
-            you:SetText(WHITE .. "You are #" .. selfRank .. "!" .. SEYELLOW .. " lvl" .. self.DB.factionrealm.leaderboard[selfRank].level)
+            you:SetText(WHITE .. "You are #" .. selfRank .. "!" .. WHITE .. " lvl" .. self.DB.factionrealm.leaderboard[selfRank].level)
             you:SetFont(GameFontNormalLarge:GetFont())
             you.label:SetJustifyH("CENTER")
             frame:AddChild(you)
@@ -151,8 +159,14 @@ function TheClassicRaceStatusFrame:Render()
 
     for rank, playerInfo in ipairs(self.DB.factionrealm.leaderboard) do
         if rank ~= 1 then
+            local playerClass = self.Core:ClassByIndex(playerInfo.classIndex)
+            local color = TheClassicRace.Colors[playerClass]
+            if color == nil then
+                color = WHITE
+            end
+
             local player = AceGUI:Create("Label")
-            player:SetText(WHITE .. "#" .. rank .. " " .. playerInfo.name .. SEYELLOW .. " lvl" .. playerInfo.level)
+            player:SetText(WHITE .. "#" .. rank .. " " .. color .. playerInfo.name .. WHITE .. " lvl" .. playerInfo.level)
 
             scroll:AddChild(player)
         end

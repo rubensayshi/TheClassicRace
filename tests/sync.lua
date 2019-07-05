@@ -33,7 +33,7 @@ describe("Sync", function()
 
         db = LibStub("AceDB-3.0"):New("TheClassicRace_DB", TheClassicRace.DefaultDB, true)
         db:ResetDB()
-        core = TheClassicRace.Core("Nub", "NubVille")
+        core = TheClassicRace.Core(TheClassicRace.Config, "Nub", "NubVille")
         -- mock core:Now() to return our mocked time
         function core:Now() return time end
         eventbus = TheClassicRace.EventBus()
@@ -259,21 +259,21 @@ describe("Sync", function()
         local networkSpy = spy.on(network, "SendObject")
 
         db.factionrealm.leaderboard = {
-            {name = "Nub1", level = 5, dingedAt = time},
-            {name = "Nub2", level = 5, dingedAt = time},
-            {name = "Nub3", level = 5, dingedAt = time},
-            {name = "Nub4", level = 5, dingedAt = time},
-            {name = "Nub5", level = 5, dingedAt = time},
+            {name = "Nub1", level = 5, dingedAt = time, classIndex = 8},
+            {name = "Nub2", level = 5, dingedAt = time, classIndex = 7},
+            {name = "Nub3", level = 5, dingedAt = time, classIndex = 6},
+            {name = "Nub4", level = 5, dingedAt = time, classIndex = 5},
+            {name = "Nub5", level = 5, dingedAt = time, classIndex = 4},
         }
 
         sync:Sync("Dude")
 
         assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, match.is_same({
-            {"Nub1", 5, time},
-            {"Nub2", 5, time},
-            {"Nub3", 5, time},
-            {"Nub4", 5, time},
-            {"Nub5", 5, time},
+            {"Nub1", 5, time, 8},
+            {"Nub2", 5, time, 7},
+            {"Nub3", 5, time, 6},
+            {"Nub4", 5, time, 5},
+            {"Nub5", 5, time, 4},
         }), "WHISPER", "Dude")
         assert.spy(networkSpy).called_at_most(1)
     end)
@@ -282,23 +282,23 @@ describe("Sync", function()
         local eventBusSpy = spy.on(eventbus, "PublishEvent")
 
         sync:OnSyncPayload({
-            {"Nub1", 5, time},
-            {"Nub2", 5, time},
-            {"Nub3", 5, time},
-            {"Nub4", 5, time},
-            {"Nub5", 5, time},
+            {"Nub1", 5, time, 8},
+            {"Nub2", 5, time, 7},
+            {"Nub3", 5, time, 6},
+            {"Nub4", 5, time, 5},
+            {"Nub5", 5, time, 4},
         }, "Dude")
 
         assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), NetEvents.PlayerInfo,
-                match.is_same({{"Nub1", 5, time, }}), "Dude", false)
+                match.is_same({{"Nub1", 5, time, 8, }}), "Dude", false)
         assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), NetEvents.PlayerInfo,
-                match.is_same({{"Nub2", 5, time, }}), "Dude", false)
+                match.is_same({{"Nub2", 5, time, 7, }}), "Dude", false)
         assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), NetEvents.PlayerInfo,
-                match.is_same({{"Nub3", 5, time, }}), "Dude", false)
+                match.is_same({{"Nub3", 5, time, 6, }}), "Dude", false)
         assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), NetEvents.PlayerInfo,
-                match.is_same({{"Nub4", 5, time, }}), "Dude", false)
+                match.is_same({{"Nub4", 5, time, 5, }}), "Dude", false)
         assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), NetEvents.PlayerInfo,
-                match.is_same({{"Nub5", 5, time, }}), "Dude", false)
+                match.is_same({{"Nub5", 5, time, 4, }}), "Dude", false)
         assert.spy(eventBusSpy).called_at_most(5)
     end)
 end)

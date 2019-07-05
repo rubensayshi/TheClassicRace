@@ -80,6 +80,7 @@ function TheClassicRaceTracker:OnNetPlayerInfo(playerInfo, _, shouldBroadcast)
         name = playerInfo[1],
         level = playerInfo[2],
         dingedAt = playerInfo[3],
+        classIndex = playerInfo[4],
     }, shouldBroadcast)
 end
 
@@ -105,6 +106,14 @@ function TheClassicRaceTracker:HandlePlayerInfo(playerInfo, shouldBroadcast)
 
     if playerInfo.dingedAt == nil then
         playerInfo.dingedAt = self.Core:Now()
+    end
+
+    if playerInfo.classIndex == nil then
+        if playerInfo.class == nil then
+            playerInfo.classIndex = 0
+        else
+            playerInfo.classIndex = self.Core:ClassIndex(playerInfo.class)
+        end
     end
 
     -- determine where to insert the player and his previous rank
@@ -151,6 +160,7 @@ function TheClassicRaceTracker:HandlePlayerInfo(playerInfo, shouldBroadcast)
         name = playerInfo.name,
         level = playerInfo.level,
         dingedAt = playerInfo.dingedAt,
+        classIndex = playerInfo.classIndex,
     })
 
     -- truncate when leaderboard reached max size
@@ -161,10 +171,10 @@ function TheClassicRaceTracker:HandlePlayerInfo(playerInfo, shouldBroadcast)
     -- broadcast
     if shouldBroadcast and self.DB.profile.options.networking then
         self.Network:SendObject(self.Config.Network.Events.PlayerInfo,
-                {{ playerInfo.name, playerInfo.level, playerInfo.dingedAt }, }, "CHANNEL")
+                {{ playerInfo.name, playerInfo.level, playerInfo.dingedAt, playerInfo.classIndex }, }, "CHANNEL")
         if IsInGuild() then
             self.Network:SendObject(self.Config.Network.Events.PlayerInfo,
-                    {{ playerInfo.name, playerInfo.level, playerInfo.dingedAt }, }, "GUILD")
+                    {{ playerInfo.name, playerInfo.level, playerInfo.dingedAt, playerInfo.classIndex }, }, "GUILD")
         end
     end
 

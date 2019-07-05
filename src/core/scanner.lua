@@ -70,6 +70,7 @@ function TheClassicRaceScanner:OnPlayerLevelUp(level)
     self.EventBus:PublishEvent(TheClassicRace.Config.Events.SlashWhoResult, {
         name = self.Core:Me(),
         level = level,
+        class = self.Core:MyClass(),
     })
 end
 
@@ -94,6 +95,8 @@ function TheClassicRaceScanner:ProcessWhoResult(result)
         self.EventBus:PublishEvent(TheClassicRace.Config.Events.SlashWhoResult, {
             name = name,
             level = player.Level,
+            -- @TODO: this is localized so only works on english atm
+            class = string.upper(player.Class),
         })
     end
 end

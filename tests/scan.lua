@@ -36,7 +36,7 @@ describe("Scan", function()
 
         db = LibStub("AceDB-3.0"):New("TheClassicRace_DB", TheClassicRace.DefaultDB, true)
         db:ResetDB()
-        core = TheClassicRace.Core("Nub1", "NubVille")
+        core = TheClassicRace.Core(TheClassicRace.Config, "Nub1", "NubVille")
         -- mock core:Now() to return our mocked time
         function core:Now() return time end
         eventbus = TheClassicRace.EventBus()

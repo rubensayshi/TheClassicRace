@@ -141,7 +141,7 @@ function TheClassicRaceSync:Sync(syncTo)
     -- @TODO: compress?
     local payload = {}
     for _, playerInfo in ipairs(self.DB.factionrealm.leaderboard) do
-        table.insert(payload, { playerInfo.name, playerInfo.level, playerInfo.dingedAt })
+        table.insert(payload, { playerInfo.name, playerInfo.level, playerInfo.dingedAt, playerInfo.classIndex })
     end
 
     self.Network:SendObject(self.Config.Network.Events.SyncPayload, payload, "WHISPER", syncTo)

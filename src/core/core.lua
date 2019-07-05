@@ -2,9 +2,10 @@
 local TheClassicRace = _G.TheClassicRace
 
 -- WoW API
-local GetServerTime = _G.GetServerTime
+local GetServerTime, UnitClass = _G.GetServerTime, _G.UnitClass
 
 ---@class TheClassicRaceCore
+---@field Config TheClassicRaceConfig
 local TheClassicRaceCore = {}
 TheClassicRaceCore.__index = TheClassicRaceCore
 TheClassicRace.Core = TheClassicRaceCore
@@ -15,8 +16,10 @@ setmetatable(TheClassicRaceCore, {
     end,
 })
 
-function TheClassicRaceCore.new(player, realm)
+function TheClassicRaceCore.new(Config, player, realm)
     local self = setmetatable({}, TheClassicRaceCore)
+
+    self.Config = Config
 
     self.InitMe(self, player, realm)
 
@@ -64,6 +67,27 @@ end
 
 function TheClassicRaceCore:FullRealMe()
     return self:PlayerFull(self.realme)
+end
+
+function TheClassicRaceCore:MyClass()
+    local _, className, _ = UnitClass("player")
+    return className
+end
+
+function TheClassicRaceCore:ClassIndex(className)
+    if self.Config.ClassIndexes[className] ~= nil then
+        return self.Config.ClassIndexes[className]
+    else
+        return self.Config.UnknownClassIndex
+    end
+end
+
+function TheClassicRaceCore:ClassByIndex(classIndex)
+    if classIndex ~= nil and self.Config.Classes[classIndex] ~= nil then
+        return self.Config.Classes[classIndex]
+    else
+        return "UNKNOWN"
+    end
 end
 
 function TheClassicRaceCore:SplitFullPlayer(fullPlayer)
