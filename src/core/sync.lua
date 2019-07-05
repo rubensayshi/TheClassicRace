@@ -35,10 +35,10 @@ function TheClassicRaceSync.new(Config, Core, DB, EventBus, Network)
     self.syncPartner = nil
     self.lastSync = nil
 
-    EventBus:RegisterCallback(self.Config.Network.Events.RequestSync, self, self.OnRequestSync)
-    EventBus:RegisterCallback(self.Config.Network.Events.OfferSync, self, self.OnOfferSync)
-    EventBus:RegisterCallback(self.Config.Network.Events.StartSync, self, self.OnStartSync)
-    EventBus:RegisterCallback(self.Config.Network.Events.SyncPayload, self, self.OnSyncPayload)
+    EventBus:RegisterCallback(self.Config.Network.Events.RequestSync, self, self.OnNetRequestSync)
+    EventBus:RegisterCallback(self.Config.Network.Events.OfferSync, self, self.OnNetOfferSync)
+    EventBus:RegisterCallback(self.Config.Network.Events.StartSync, self, self.OnNetStartSync)
+    EventBus:RegisterCallback(self.Config.Network.Events.SyncPayload, self, self.OnNetSyncPayload)
 
     return self
 end
@@ -64,13 +64,13 @@ function TheClassicRaceSync:InitSync()
     C_Timer.After(self.Config.RequestSyncWait, function() _self:DoSync() end)
 end
 
-function TheClassicRaceSync:OnRequestSync(_, sender)
+function TheClassicRaceSync:OnNetRequestSync(_, sender)
     -- don't respond to requests when we've disabled networking
     if not self.DB.profile.options.networking then
         return
     end
 
-    TheClassicRace:DebugPrint("OnRequestSync(" .. sender .. ") isReady=" .. tostring(self.isReady))
+    TheClassicRace:DebugPrint("OnNetRequestSync(" .. sender .. ") isReady=" .. tostring(self.isReady))
     -- if we're still in the process of syncing up ourselves then we shouldn't offer ourselves to sync with
     if not self.isReady then
         return
@@ -81,8 +81,8 @@ function TheClassicRaceSync:OnRequestSync(_, sender)
     self.Network:SendObject(self.Config.Network.Events.OfferSync, self.lastSync, "WHISPER", sender)
 end
 
-function TheClassicRaceSync:OnOfferSync(lastSync, sender)
-    TheClassicRace:DebugPrint("OnOfferSync(" .. sender .. ")")
+function TheClassicRaceSync:OnNetOfferSync(lastSync, sender)
+    TheClassicRace:DebugPrint("OnNetOfferSync(" .. sender .. ")")
     -- add anyone who offers to sync with us
     table.insert(self.offers, {name = sender, lastSync = lastSync})
 end
@@ -147,8 +147,8 @@ function TheClassicRaceSync:Sync(syncTo)
     self.Network:SendObject(self.Config.Network.Events.SyncPayload, payload, "WHISPER", syncTo)
 end
 
-function TheClassicRaceSync:OnStartSync(_, sender)
-    TheClassicRace:DebugPrint("OnStartSync(" .. sender .. ")")
+function TheClassicRaceSync:OnNetStartSync(_, sender)
+    TheClassicRace:DebugPrint("OnNetStartSync(" .. sender .. ")")
 
     -- mark last sync
     self.lastSync = self.Core:Now()
@@ -157,8 +157,8 @@ function TheClassicRaceSync:OnStartSync(_, sender)
     self:Sync(sender)
 end
 
-function TheClassicRaceSync:OnSyncPayload(payload, sender)
-    TheClassicRace:DebugPrint("OnSyncPayload(" .. sender .. ")")
+function TheClassicRaceSync:OnNetSyncPayload(payload, sender)
+    TheClassicRace:DebugPrint("OnNetSyncPayload(" .. sender .. ")")
 
     -- if we've requested sync data then we shouldn't broadcast what we receive because it should already have been spread
     -- if we're provided sync data then we should broadcast relevant info

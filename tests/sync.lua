@@ -281,7 +281,7 @@ describe("Sync", function()
     it("consumes proper payload", function()
         local eventBusSpy = spy.on(eventbus, "PublishEvent")
 
-        sync:OnSyncPayload({
+        sync:OnNetSyncPayload({
             {"Nub1", 5, time, 8},
             {"Nub2", 5, time, 7},
             {"Nub3", 5, time, 6},
