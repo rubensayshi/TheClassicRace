@@ -7,6 +7,10 @@ local LibDataBroker = LibStub("LibDataBroker-1.1")
 local AceConfig = LibStub("AceConfig-3.0")
 local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 
+-- colors
+local WHITE = TheClassicRace.Colors.WHITE
+local BROWN = TheClassicRace.Colors.BROWN
+
 function TheClassicRace:RegisterOptions()
     local _self = self
 
@@ -92,6 +96,14 @@ function TheClassicRace:RegisterOptions()
         OnClick = function(_, ...) _self:MinimapIconClick(...) end
     })
     LibDBIcon:Register(TheClassicRace.Config.LDB, ldb, self.DB.profile.options.minimap)
+
+    local hint = WHITE .. "The Classic Race\n" ..
+                 BROWN .. "Click|r to show the leaderboard. " ..
+                 BROWN .. "Right-Click|r to open options dialog."
+    function ldb.OnTooltipShow(tt)
+        tt:AddLine(hint, 0.2, 1, 0.2, 1)
+    end
+
 end
 
 function TheClassicRace:MinimapIconClick(button)

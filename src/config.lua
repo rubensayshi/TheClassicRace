@@ -4,6 +4,7 @@ local TheClassicRace = _G.TheClassicRace
 local TheClassicRaceColors = {
     WHITE = "|cFFFFFFFF",
     SYSTEM_EVENT_YELLOW = "|cFFFFFF00",
+    BROWN       = "|cFFEDA55F",
     WARRIOR	    = "|cFFC79C6E",
     PALADIN	    = "|cFFF58CBA",
     HUNTER      = "|cFFABD473",
