@@ -85,19 +85,19 @@ function TheClassicRaceNetwork:HandleAddonMessage(...)
         return
     end
 
-    -- so we can pretend to be somebody else
-    if sender == self.Core:FullRealMe() then
-        sender = self.Core:FullMe()
-    end
-
-    -- ignore our own messages
-    if sender == self.Core:FullRealMe() then
-        return
-    end
-
     -- completely ignore anything from other realms
     local _, senderRealm = self.Core:SplitFullPlayer(sender)
     if not self.Core:IsMyRealm(senderRealm) then
+        return
+    end
+
+    -- so we can pretend to be somebody else
+    if sender == self.Core:RealMe() then
+        sender = self.Core:Me()
+    end
+
+    -- ignore our own messages
+    if sender == self.Core:RealMe() then
         return
     end
 
