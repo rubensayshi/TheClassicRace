@@ -43,6 +43,11 @@ function TheClassicRaceChatNotifier:OnDing(playerInfo, rank)
         return
     end
 
+    -- no notifications for ranks below threshold
+    if rank > self.DB.profile.options.notificationThreshold then
+        return
+    end
+
     if playerInfo.name == self.Core:Me() then
         self:OnSelfDing(playerInfo, rank)
     else
@@ -90,5 +95,5 @@ function TheClassicRaceChatNotifier:OnStrangerDing(playerInfo, rank)
 end
 
 function TheClassicRaceChatNotifier:OnRaceFinished()
-    TheClassicRace:PPrint("More than " .. self.DB.profile.options.leaderboardSize .. " players have reached max level, the race is over!")
+    TheClassicRace:PPrint("More than " .. self.Config.MaxLeaderboardSize .. " players have reached max level, the race is over!")
 end

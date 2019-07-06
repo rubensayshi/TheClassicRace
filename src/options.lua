@@ -35,29 +35,27 @@ function TheClassicRace:RegisterOptions()
                 name = "Options",
                 type = "group",
                 args = {
-                    leaderboardSize = {
-                        order = 1,
-                        name = "Number of players to track",
-                        desc = "Limit how many players to track for leaderboard and chat notifications",
+                    notificationThreshold = {
+                        order = 10,
+                        name = "Threshold rank for notifications",
                         descStyle = "inline",
                         width = "full",
                         type = "range",
                         step = 1,
                         min = 1,
                         max = TheClassicRace.Config.MaxLeaderboardSize,
-                        set = function(_, val)
-                            local decreased = val < _self.DB.profile.options.leaderboardSize
-                            _self.DB.profile.options.leaderboardSize = val
-
-                            -- broadcast event when size decreased
-                            if decreased then
-                                _self.EventBus:PublishEvent(TheClassicRace.Config.Events.LeaderboardSizeDecreased)
-                            end
-                        end,
-                        get = function() return _self.DB.profile.options.leaderboardSize end
+                        set = function(_, val) _self.DB.profile.options.notificationThreshold = val end,
+                        get = function() return _self.DB.profile.options.notificationThreshold end
+                    },
+                    notificationThresholdDesc = {
+                        order = 11,
+                        name = "Threshold to limit showing level up notifications for top X",
+                        descStyle = "inline",
+                        width = "full",
+                        type = "description",
                     },
                     enableNotifications = {
-                        order = 2,
+                        order = 20,
                         name = "Enable Notifications",
                         desc = "Enables / disables the notifications in your chat window",
                         descStyle = "inline",
@@ -67,7 +65,7 @@ function TheClassicRace:RegisterOptions()
                         get = function() return _self.DB.profile.options.notifications end
                     },
                     enableNetworking = {
-                        order = 3,
+                        order = 30,
                         name = "Enable Sharing / Receiving Data",
                         desc = "Enables / disables the sharing of data through addon channels",
                         descStyle = "inline",
@@ -77,7 +75,7 @@ function TheClassicRace:RegisterOptions()
                         get = function() return _self.DB.profile.options.networking end
                     },
                     dontBumpScan = {
-                        order = 4,
+                        order = 40,
                         name = "Always /who query",
                         desc = "Do a /who scan every 60s even when data was synced from another player",
                         descStyle = "inline",
@@ -87,7 +85,7 @@ function TheClassicRace:RegisterOptions()
                         get = function() return _self.DB.profile.options.dontbump end
                     },
                     reset = {
-                        order = 5,
+                        order = 50,
                         name = "Reset Data",
                         type = "execute",
                         func = function()

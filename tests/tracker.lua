@@ -31,11 +31,7 @@ describe("Tracker", function()
 
     before_each(function()
         config = mergeConfigs(TheClassicRace.Config, {MaxLeaderboardSize = 5})
-        -- little hacky to adjust DefaultDB because it's constant
-        defaultDb = mergeConfigs(TheClassicRace.DefaultDB, {})
-        defaultDb.profile.options.leaderboardSize = config.MaxLeaderboardSize
-
-        db = LibStub("AceDB-3.0"):New("TheClassicRace_DB", defaultDb, true)
+        db = LibStub("AceDB-3.0"):New("TheClassicRace_DB", TheClassicRace.DefaultDB, true)
         db:ResetDB()
         core = TheClassicRace.Core(TheClassicRace.Config, "Nub", "NubVille")
         -- mock core:Now() to return our mocked time
@@ -91,30 +87,6 @@ describe("Tracker", function()
                 {name = "Nub4", level = 5, dingedAt = time, classIndex = 11},
                 {name = "Nub5", level = 5, dingedAt = time, classIndex = 11},
             }, db.factionrealm.leaderboard)
-        end)
-
-        it("truncates when config is decreased", function()
-            tracker:ProcessPlayerInfoBatch({{name = "Nub1", level = 5, class = "DRUID"}, }, false)
-            tracker:ProcessPlayerInfoBatch({{name = "Nub2", level = 5, class = "DRUID"}, }, false)
-            tracker:ProcessPlayerInfoBatch({{name = "Nub3", level = 5, class = "DRUID"}, }, false)
-            tracker:ProcessPlayerInfoBatch({{name = "Nub4", level = 5, class = "DRUID"}, }, false)
-            tracker:ProcessPlayerInfoBatch({{name = "Nub5", level = 5, class = "DRUID"}, }, false)
-            tracker:ProcessPlayerInfoBatch({{name = "Nub6", level = 5, class = "DRUID"}, }, false)
-
-            -- leaderboard is capped at 5
-            assert.equals(5, #db.factionrealm.leaderboard)
-
-            -- adjust the option
-            db.profile.options.leaderboardSize = 4
-
-            -- nothing changed yet until we fire event
-            assert.equals(5, #db.factionrealm.leaderboard)
-
-            -- fire event
-            eventbus:PublishEvent(config.Events.LeaderboardSizeDecreased)
-
-            -- leaderboard should be truncated
-            assert.equals(4, #db.factionrealm.leaderboard)
         end)
 
         it("bumps on ding", function()

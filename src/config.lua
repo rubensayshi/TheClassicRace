@@ -96,7 +96,6 @@ local TheClassicRaceConfig = {
         -- because that's only broadcasted once
         ScanFinished = "SCAN_FINISHED",
         RaceFinished = "RACE_FINISHED",
-        LeaderboardSizeDecreased = "LEADERBOARD_SIZE_DECREASED",
         RefreshGUI = "REFRESH_GUI",
     },
 }

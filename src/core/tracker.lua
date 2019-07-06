@@ -40,7 +40,6 @@ function TheClassicRaceTracker.new(Config, Core, DB, EventBus, Network)
     EventBus:RegisterCallback(self.Config.Events.SlashWhoResult, self, self.OnSlashWhoResult)
     EventBus:RegisterCallback(self.Config.Events.SyncResult, self, self.OnSyncResult)
     EventBus:RegisterCallback(self.Config.Events.ScanFinished, self, self.OnScanFinished)
-    EventBus:RegisterCallback(self.Config.Events.LeaderboardSizeDecreased, self, self.OnLeaderboardSizeDecreased)
 
     return self
 end
@@ -50,15 +49,6 @@ function TheClassicRaceTracker:OnScanFinished(endofrace)
     if endofrace then
         self:RaceFinished()
     end
-end
-
-function TheClassicRaceTracker:OnLeaderboardSizeDecreased()
-    -- truncate leaderboard to match size
-    while #self.DB.factionrealm.leaderboard > self.DB.profile.options.leaderboardSize do
-        table.remove(self.DB.factionrealm.leaderboard)
-    end
-
-    self.EventBus:PublishEvent(self.Config.Events.RefreshGUI)
 end
 
 function TheClassicRaceTracker:RaceFinished()
@@ -186,7 +176,7 @@ function TheClassicRaceTracker:ProcessPlayerInfo(playerInfo)
     end
 
     -- grow the leaderboard up until the max size
-    if insertAtRank == nil and #self.DB.factionrealm.leaderboard < self.DB.profile.options.leaderboardSize then
+    if insertAtRank == nil and #self.DB.factionrealm.leaderboard < self.Config.MaxLeaderboardSize then
         insertAtRank = #self.DB.factionrealm.leaderboard + 1
     end
 
@@ -209,7 +199,7 @@ function TheClassicRaceTracker:ProcessPlayerInfo(playerInfo)
     })
 
     -- truncate when leaderboard reached max size
-    while #self.DB.factionrealm.leaderboard > self.DB.profile.options.leaderboardSize do
+    while #self.DB.factionrealm.leaderboard > self.Config.MaxLeaderboardSize do
         table.remove(self.DB.factionrealm.leaderboard)
     end
 
@@ -222,7 +212,7 @@ function TheClassicRaceTracker:ProcessPlayerInfo(playerInfo)
     self.DB.factionrealm.highestLevel = math.max(self.DB.factionrealm.highestLevel, playerInfo.level)
 
     -- we only care about levels >= our bottom ranked on the leaderboard
-    if #self.DB.factionrealm.leaderboard >= self.DB.profile.options.leaderboardSize then
+    if #self.DB.factionrealm.leaderboard >= self.Config.MaxLeaderboardSize then
         self.DB.factionrealm.levelThreshold = self.DB.factionrealm.leaderboard[#self.DB.factionrealm.leaderboard].level
 
         if self.DB.factionrealm.levelThreshold == self.Config.MaxLevel then

@@ -11,7 +11,7 @@ local TheClassicRaceDefaultDB = {
             networking = true,
             dontbump = false,
             notifications = true,
-            leaderboardSize = TheClassicRace.Config.MaxLeaderboardSize,
+            notificationThreshold = 25,
         },
     },
     factionrealm = {
