@@ -236,4 +236,25 @@ describe("Tracker", function()
             assert.spy(eventBusSpy).called_at_most(1)
         end)
     end)
+
+    describe("Sync", function()
+        it("adds players", function()
+            tracker:ProcessPlayerInfoBatch({{name = "Nub1", level = 5, class = "DRUID"}, }, false)
+            tracker:ProcessPlayerInfoBatch({{name = "Nub2", level = 5, class = "WARRIOR"}, }, false)
+            tracker:OnSyncResult({
+                {name = "Nub3", level = 5, class = "PALADIN"},
+                {name = "Nub4", level = 5, class = "PRIEST"},
+                {name = "Nub5", level = 5, classIndex = 6},
+            }, false)
+
+            assert.equals(5, #db.factionrealm.leaderboard)
+            assert.same({
+                {name = "Nub1", level = 5, dingedAt = time, classIndex = 11},
+                {name = "Nub2", level = 5, dingedAt = time, classIndex = 1},
+                {name = "Nub3", level = 5, dingedAt = time, classIndex = 2},
+                {name = "Nub4", level = 5, dingedAt = time, classIndex = 5},
+                {name = "Nub5", level = 5, dingedAt = time, classIndex = 6},
+            }, db.factionrealm.leaderboard)
+        end)
+    end)
 end)

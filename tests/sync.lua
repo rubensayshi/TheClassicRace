@@ -269,11 +269,12 @@ describe("Sync", function()
         sync:Sync("Dude")
 
         assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, match.is_same({
-            {"Nub1", 5, time, 8},
-            {"Nub2", 5, time, 7},
-            {"Nub3", 5, time, 6},
-            {"Nub4", 5, time, 5},
-            {"Nub5", 5, time, 4},
+            {"Nub1", 5, 0, 8},
+            {"Nub2", 5, 0, 7},
+            {"Nub3", 5, 0, 6},
+            {"Nub4", 5, 0, 5},
+            {"Nub5", 5, 0, 4},
+            time,
         }), "WHISPER", "Dude")
         assert.spy(networkSpy).called_at_most(1)
     end)
@@ -282,20 +283,21 @@ describe("Sync", function()
         local eventBusSpy = spy.on(eventbus, "PublishEvent")
 
         sync:OnNetSyncPayload({
-            {"Nub1", 5, time, 8},
-            {"Nub2", 5, time, 7},
-            {"Nub3", 5, time, 6},
-            {"Nub4", 5, time, 5},
-            {"Nub5", 5, time, 4},
+            {"Nub1", 5, 0, 8},
+            {"Nub2", 5, 0, 7},
+            {"Nub3", 5, 0, 6},
+            {"Nub4", 5, 10, 5},
+            {"Nub5", 5, -10, 4},
+            time,
         }, "Dude")
 
         assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), Events.SyncResult,
                 match.is_same({
-                    {"Nub1", 5, time, 8},
-                    {"Nub2", 5, time, 7},
-                    {"Nub3", 5, time, 6},
-                    {"Nub4", 5, time, 5},
-                    {"Nub5", 5, time, 4},
+                    {name = "Nub1", level = 5, dingedAt = time, classIndex = 8},
+                    {name = "Nub2", level = 5, dingedAt = time, classIndex = 7},
+                    {name = "Nub3", level = 5, dingedAt = time, classIndex = 6},
+                    {name = "Nub4", level = 5, dingedAt = time + 10, classIndex = 5},
+                    {name = "Nub5", level = 5, dingedAt = time - 10, classIndex = 4},
                 }), false)
         assert.spy(eventBusSpy).called_at_most(1)
     end)

@@ -138,10 +138,23 @@ function TheClassicRaceSync:DoSync()
 end
 
 function TheClassicRaceSync:Sync(syncTo)
+    local dingedAtOffset = nil
     local payload = {}
     for idx, playerInfo in ipairs(self.DB.factionrealm.leaderboard) do
-        payload[idx] = { playerInfo.name, playerInfo.level, playerInfo.dingedAt, playerInfo.classIndex }
+        local dingedAt = playerInfo.dingedAt
+        -- offset dingedAt to make it more compact
+        if dingedAt ~= nil then
+            if dingedAtOffset == nil then
+                dingedAtOffset = dingedAt
+            end
+            dingedAt = dingedAt - dingedAtOffset
+        end
+
+        payload[idx] = { playerInfo.name, playerInfo.level, dingedAt, playerInfo.classIndex }
     end
+
+    -- last entry in payload is dingedAt offset
+    payload[#payload + 1] = dingedAtOffset
 
     self.Network:SendObject(self.Config.Network.Events.SyncPayload, payload, "WHISPER", syncTo)
 end
@@ -163,8 +176,27 @@ function TheClassicRaceSync:OnNetSyncPayload(payload, sender)
     -- if we're provided sync data then we should broadcast relevant info
     local shouldBroadcast = self.isReady
 
-    -- push into our eventbus as if it was info receive from a PlayerInfo network event
-    self.EventBus:PublishEvent(self.Config.Events.SyncResult, payload, shouldBroadcast)
+    -- last entry is dingedAt offset
+    local dingedAtOffset = table.remove(payload, #payload)
+
+    local normalizedPayload = {}
+    for idx, playerInfo in ipairs(payload) do
+        -- add back the dingedAt offset
+        local dingedAt = playerInfo[3]
+        if dingedAt ~= nil then
+            dingedAt = dingedAt + dingedAtOffset
+        end
+
+        normalizedPayload[idx] = {
+            name = playerInfo[1],
+            level = playerInfo[2],
+            dingedAt = dingedAt,
+            classIndex = playerInfo[4],
+        }
+    end
+
+    -- push into our eventbus
+    self.EventBus:PublishEvent(self.Config.Events.SyncResult, normalizedPayload, shouldBroadcast)
 
     -- mark ourselves as synced up
     if not self.isReady then
