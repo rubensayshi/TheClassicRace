@@ -36,6 +36,7 @@ function TheClassicRaceNetwork.new(Core, EventBus)
     self.Core = Core
     self.EventBus = EventBus
     self.MessageBuffer = {}
+    self.ready = false
 
     -- create a Frame to use as thread to recieve events on
     self.Thread = CreateFrame("Frame")
@@ -47,10 +48,6 @@ function TheClassicRaceNetwork.new(Core, EventBus)
         end
     end)
 
-    -- init channel if we're not too early (otherwise we'll wait for CHANNEL_UI_UPDATE)
-    if GetNumDisplayChannels() > 0 then
-        self:InitChannel()
-    end
     -- register for CHANNEL_UI_UPDATE so we know when our channel might have changed
     self.Thread:RegisterEvent("CHANNEL_UI_UPDATE")
 
@@ -59,6 +56,13 @@ function TheClassicRaceNetwork.new(Core, EventBus)
     end)
 
     return self
+end
+
+function TheClassicRaceNetwork:Init()
+    -- init channel if we're not too early (otherwise we'll wait for CHANNEL_UI_UPDATE)
+    if GetNumDisplayChannels() > 0 then
+        self:InitChannel()
+    end
 end
 
 function TheClassicRaceNetwork:InitChannel()
@@ -74,6 +78,11 @@ function TheClassicRaceNetwork:InitChannel()
     end
 
     TheClassicRace.Config.Network.Channel.Id = channelId
+
+    if not self.ready then
+        self.ready = true
+        self.EventBus:PublishEvent(TheClassicRace.Config.Events.NetworkReady)
+    end
 end
 
 function TheClassicRaceNetwork:HandleAddonMessage(...)

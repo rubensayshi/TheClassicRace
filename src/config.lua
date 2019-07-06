@@ -87,6 +87,7 @@ local TheClassicRaceConfig = {
         },
     },
     Events = {
+        NetworkReady = "NETWORK_READY",
         SlashWhoResult = "WHO_RESULT",
         SyncResult = "SYNC_RESULT",
         BumpScan = "BUMP_SCAN",

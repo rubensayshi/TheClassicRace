@@ -46,6 +46,10 @@ function TheClassicRace:OnInitialize()
     self.Sync = TheClassicRace.Sync(self.Config, self.Core, self.DB, self.EventBus, self.Network)
     self.StatusFrame = TheClassicRace.StatusFrame(self.Config, self.Core, self.DB, self.EventBus)
 
+    self.EventBus:RegisterCallback(self.Config.Events.NetworkReady, self, function()
+        self.Sync:InitSync()
+    end)
+
     self:DebugPrint("me: " .. self.Core:RealMe())
 end
 
@@ -58,8 +62,7 @@ function TheClassicRace:OnEnable()
     self.Core:InitMe(player, realm)
     self:DebugPrint("me: " .. self.Core:RealMe())
 
-    -- request an update of data
-    self.Sync:InitSync()
+    self.Network:Init()
 
     -- init the scanner ticker, first scan will happen when the ticker ticks
     self.Scanner:InitTicker()
