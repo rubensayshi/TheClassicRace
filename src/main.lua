@@ -64,6 +64,12 @@ function TheClassicRace:OnEnable()
     -- start scanner
     self.Scanner:InitTicker()
     self.Scanner:StartScan()
+
+    if self.DB.profile.firsttime then
+        self.DB.profile.firsttime = false
+
+        self.StatusFrame:Show()
+    end
 end
 
 --[[

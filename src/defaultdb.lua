@@ -3,6 +3,7 @@ local TheClassicRace = _G.TheClassicRace
 ---@class TheClassicRaceDefaultDB
 local TheClassicRaceDefaultDB = {
     profile = {
+        firsttime = true,
         options = {
             minimap = {
                 hide = false,
