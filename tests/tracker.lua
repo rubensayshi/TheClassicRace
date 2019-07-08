@@ -3,8 +3,11 @@ local TheClassicRace = require("testbase")
 
 -- aliases
 local Events = TheClassicRace.Config.Events
+local DRUIDIDX, WARRIORIDX, PALADINIDX, PRIESTIDX =
+TheClassicRace.Config.ClassIndexes["DRUID"], TheClassicRace.Config.ClassIndexes["WARRIOR"],
+TheClassicRace.Config.ClassIndexes["PALADIN"],TheClassicRace.Config.ClassIndexes["PRIEST"]
 
-function mergeConfigs(...)
+function merge(...)
     local config = {}
     for _, c in pairs({...}) do
         for k, v in pairs(c) do
@@ -13,6 +16,18 @@ function mergeConfigs(...)
     end
 
     return config
+end
+
+function leaderboardSpies(tracker, config)
+    local spies = {}
+
+    spies[0] = spy.on(tracker.lbGlobal, "ProcessPlayerInfo")
+
+    for classIndex, _ in ipairs(config.Classes) do
+        spies[classIndex] = spy.on(tracker.lbPerClass[classIndex], "ProcessPlayerInfo")
+    end
+
+    return spies
 end
 
 describe("Tracker", function()
@@ -29,8 +44,26 @@ describe("Tracker", function()
     local tracker
     local time = 1000000000
 
+    function playerInfo(name, level, classIndex, dingedAt)
+        if classIndex == nil then
+            classIndex = 11
+        end
+        if dingedAt == nil then
+            dingedAt = time
+        end
+
+        return {
+            name = name,
+            level = level,
+            classIndex = classIndex,
+            dingedAt = dingedAt,
+        }
+    end
+
+
+
     before_each(function()
-        config = mergeConfigs(TheClassicRace.Config, {MaxLeaderboardSize = 5})
+        config = merge(TheClassicRace.Config, {MaxLeaderboardSize = 5})
         db = LibStub("AceDB-3.0"):New("TheClassicRace_DB", TheClassicRace.DefaultDB, true)
         db:ResetDB()
         core = TheClassicRace.Core(TheClassicRace.Config, "Nub", "NubVille")
@@ -47,111 +80,72 @@ describe("Tracker", function()
     end)
 
     describe("leaderboard", function()
-        it("adds players", function()
-            tracker:ProcessPlayerInfoBatch({{name = "Nubone", level = 5, class = "DRUID"}, }, false)
-            tracker:ProcessPlayerInfoBatch({{name = "Nubtwo", level = 5, class = "WARRIOR"}, }, false)
-            tracker:ProcessPlayerInfoBatch({{name = "Nubthree", level = 5, class = "PALADIN"}, }, false)
-            tracker:ProcessPlayerInfoBatch({{name = "Nubfour", level = 5, class = "PRIEST"}, }, false)
-            tracker:ProcessPlayerInfoBatch({{name = "Nubfive", level = 5, classIndex = 6}, }, false)
+        it("adds players to global and class board", function()
+            local lbSpies = leaderboardSpies(tracker, config)
 
-            assert.equals(5, #db.factionrealm.leaderboard)
-            assert.same({
-                {name = "Nubone", level = 5, dingedAt = time, classIndex = 11},
-                {name = "Nubtwo", level = 5, dingedAt = time, classIndex = 1},
-                {name = "Nubthree", level = 5, dingedAt = time, classIndex = 2},
-                {name = "Nubfour", level = 5, dingedAt = time, classIndex = 5},
-                {name = "Nubfive", level = 5, dingedAt = time, classIndex = 6},
-            }, db.factionrealm.leaderboard)
+            local pInfo
+
+            pInfo = playerInfo("Nubone", 5, DRUIDIDX)
+            tracker:ProcessPlayerInfoBatch({ pInfo, }, false)
+            assert.spy(lbSpies[0]).was_called_with(match.is_ref(tracker.lbGlobal), pInfo)
+            assert.spy(lbSpies[DRUIDIDX]).was_called_with(match.is_ref(tracker.lbPerClass[DRUIDIDX]), pInfo)
+
+            pInfo = playerInfo("Nub2", 5, WARRIORIDX)
+            tracker:ProcessPlayerInfoBatch({ pInfo, }, false)
+            assert.spy(lbSpies[0]).was_called_with(match.is_ref(tracker.lbGlobal), pInfo)
+            assert.spy(lbSpies[WARRIORIDX]).was_called_with(match.is_ref(tracker.lbPerClass[WARRIORIDX]), pInfo)
+
+            pInfo = playerInfo("Nubthree", 5, PALADINIDX)
+            tracker:ProcessPlayerInfoBatch({ pInfo, }, false)
+            assert.spy(lbSpies[0]).was_called_with(match.is_ref(tracker.lbGlobal), pInfo)
+            assert.spy(lbSpies[PALADINIDX]).was_called_with(match.is_ref(tracker.lbPerClass[PALADINIDX]), pInfo)
+
+            pInfo = playerInfo("Nubfour", 5, PRIESTIDX)
+            tracker:ProcessPlayerInfoBatch({ pInfo, }, false)
+            assert.spy(lbSpies[0]).was_called_with(match.is_ref(tracker.lbGlobal), pInfo)
+            assert.spy(lbSpies[PRIESTIDX]).was_called_with(match.is_ref(tracker.lbPerClass[PRIESTIDX]), pInfo)
         end)
 
-        it("doesn't add duplicates", function()
-            tracker:ProcessPlayerInfoBatch({{name = "Nubone", level = 5, class = "DRUID"}, }, false)
-            tracker:ProcessPlayerInfoBatch({{name = "Nubone", level = 5, class = "DRUID"}, }, false)
+        it("fixes missing dingedAt", function()
+            local lbSpies = leaderboardSpies(tracker, config)
 
-            assert.equals(1, #db.factionrealm.leaderboard)
+            tracker:ProcessPlayerInfo({name = "Nubone", level = 5, classIndex = DRUIDIDX})
+
+            assert.spy(lbSpies[0]).was_called_with(match.is_ref(tracker.lbGlobal),
+                    playerInfo("Nubone", 5, DRUIDIDX, time))
         end)
 
-        it("doesn't add beyond max", function()
-            tracker:ProcessPlayerInfoBatch({{name = "Nubone", level = 5, class = "DRUID"}, }, false)
-            tracker:ProcessPlayerInfoBatch({{name = "Nubtwo", level = 5, class = "DRUID"}, }, false)
-            tracker:ProcessPlayerInfoBatch({{name = "Nubthree", level = 5, class = "DRUID"}, }, false)
-            tracker:ProcessPlayerInfoBatch({{name = "Nubfour", level = 5, class = "DRUID"}, }, false)
-            tracker:ProcessPlayerInfoBatch({{name = "Nubfive", level = 5, class = "DRUID"}, }, false)
-            -- max
-            tracker:ProcessPlayerInfoBatch({{name = "Nub6", level = 5, class = "DRUID"}, }, false)
-            assert.equals(5, #db.factionrealm.leaderboard)
-            assert.same({
-                {name = "Nubone", level = 5, dingedAt = time, classIndex = 11},
-                {name = "Nubtwo", level = 5, dingedAt = time, classIndex = 11},
-                {name = "Nubthree", level = 5, dingedAt = time, classIndex = 11},
-                {name = "Nubfour", level = 5, dingedAt = time, classIndex = 11},
-                {name = "Nubfive", level = 5, dingedAt = time, classIndex = 11},
-            }, db.factionrealm.leaderboard)
-        end)
+        it("fixes class to classIndex", function()
+            local lbSpies = leaderboardSpies(tracker, config)
 
-        it("bumps on ding", function()
-            tracker:ProcessPlayerInfoBatch({{name = "Nubone", level = 5, class = "DRUID"}, }, false)
-            tracker:ProcessPlayerInfoBatch({{name = "Nubone", level = 6, class = "DRUID"}, }, false)
+            tracker:ProcessPlayerInfo({name = "Nubone", level = 5, class = "DRUID"})
 
-            assert.equals(1, #db.factionrealm.leaderboard)
-            assert.equals(6, db.factionrealm.leaderboard[1].level)
-        end)
-
-        it("reorders on ding", function()
-            tracker:ProcessPlayerInfoBatch({{name = "Nubone", level = 5, class = "DRUID"}, }, false)
-            tracker:ProcessPlayerInfoBatch({{name = "Nubtwo", level = 5, class = "DRUID"}, }, false)
-            tracker:ProcessPlayerInfoBatch({{name = "Nubthree", level = 5, class = "DRUID"}, }, false)
-
-            tracker:ProcessPlayerInfoBatch({{name = "Nubtwo", level = 6, class = "DRUID"}, }, false)
-            assert.equals(3, #db.factionrealm.leaderboard)
-            assert.same({
-                {name = "Nubtwo", level = 6, dingedAt = time, classIndex = 11},
-                {name = "Nubone", level = 5, dingedAt = time, classIndex = 11},
-                {name = "Nubthree", level = 5, dingedAt = time, classIndex = 11},
-            }, db.factionrealm.leaderboard)
-        end)
-
-        it("truncates on ding", function()
-            tracker:ProcessPlayerInfoBatch({{name = "Nubone", level = 5, class = "DRUID"}, }, false)
-            tracker:ProcessPlayerInfoBatch({{name = "Nubtwo", level = 5, class = "DRUID"}, }, false)
-            tracker:ProcessPlayerInfoBatch({{name = "Nubthree", level = 5, class = "DRUID"}, }, false)
-            tracker:ProcessPlayerInfoBatch({{name = "Nubfour", level = 5, class = "DRUID"}, }, false)
-            tracker:ProcessPlayerInfoBatch({{name = "Nubfive", level = 5, class = "DRUID"}, }, false)
-
-            tracker:ProcessPlayerInfoBatch({{name = "Nub6", level = 6, class = "DRUID"}, }, false)
-            assert.equals(5, #db.factionrealm.leaderboard)
-
-            assert.same({
-                {name = "Nub6", level = 6, dingedAt = time, classIndex = 11},
-                {name = "Nubone", level = 5, dingedAt = time, classIndex = 11},
-                {name = "Nubtwo", level = 5, dingedAt = time, classIndex = 11},
-                {name = "Nubthree", level = 5, dingedAt = time, classIndex = 11},
-                {name = "Nubfour", level = 5, dingedAt = time, classIndex = 11},
-            }, db.factionrealm.leaderboard)
+            assert.spy(lbSpies[0]).was_called_with(match.is_ref(tracker.lbGlobal),
+                    playerInfo("Nubone", 5, DRUIDIDX, time))
         end)
 
         it("should broadcast internal event", function()
             local eventBusSpy = spy.on(eventbus, "PublishEvent")
 
-            tracker:ProcessPlayerInfoBatch({{name = "Nubone", level = 5, class = "DRUID"}, }, false)
+            tracker:ProcessPlayerInfoBatch({ playerInfo("Nubone", 5), }, false)
             assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), config.Events.Ding,
-                    match.is_table(), 1)
+                    match.is_table(), 1, 1)
 
-            tracker:ProcessPlayerInfoBatch({{name = "Nubone", level = 6, class = "DRUID"}, }, false)
+            tracker:ProcessPlayerInfoBatch({ playerInfo("Nubone", 6), }, false)
             assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), config.Events.Ding,
-                    match.is_table(), 1)
+                    match.is_table(), 1, 1)
 
-            tracker:ProcessPlayerInfoBatch({{name = "Nubtwo", level = 7, class = "DRUID"}, }, false)
+            tracker:ProcessPlayerInfoBatch({ playerInfo("Nub2", 7), }, false)
             assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), config.Events.Ding,
-                    match.is_table(), 1)
+                    match.is_table(), 1, 1)
 
             eventBusSpy:clear()
-            tracker:ProcessPlayerInfoBatch({{name = "Nubone", level = 6, class = "DRUID"}, }, false)
+            tracker:ProcessPlayerInfoBatch({ playerInfo("Nubone", 6), }, false)
             assert.spy(eventBusSpy).was_not_called()
 
-            tracker:ProcessPlayerInfoBatch({{name = "Nubone", level = 7, class = "DRUID"}, }, false)
+            tracker:ProcessPlayerInfoBatch({ playerInfo("Nubone", 7), }, false)
             assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), config.Events.Ding,
-                    match.is_table(), 2)
+                    match.is_table(), 2, 2)
         end)
 
         it("shouldn't broadcast to network OnNetPlayerInfo", function()
@@ -169,16 +163,15 @@ describe("Tracker", function()
         it("should bump ticker on OnNetPlayerInfo", function()
             local eventBusSpy = spy.on(eventbus, "PublishEvent")
 
-
             tracker:OnNetPlayerInfoBatch({
                 TheClassicRace.Serializer.SerializePlayerInfoBatch({
-                    {name = "Nubone", level = 7, classIndex = 11, dingedAt = 100},
-                }), false
+                    {name = "Nubone", level = 7, classIndex = DRUIDIDX, dingedAt = 100},
+                }), false, DRUIDIDX
             })
 
-            assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), config.Events.BumpScan)
+            assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), config.Events.BumpScan, DRUIDIDX)
             assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), config.Events.Ding,
-                    match.is_table(), 1)
+                    match.is_table(), 1, 1)
 
             assert.spy(eventBusSpy).called_at_most(2)
         end)
@@ -186,7 +179,7 @@ describe("Tracker", function()
         it("should broadcast to network OnSlashWhoResult", function()
             local networkSpy = spy.on(network, "SendObject")
 
-            tracker:OnSlashWhoResult({{name = "Nubone", level = 5, class = "DRUID"}, })
+            tracker:OnSlashWhoResult({ playerInfo("Nubone", 5), })
             assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.PlayerInfoBatch,
                     match.is_table(), "CHANNEL")
             assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.PlayerInfoBatch,
@@ -198,7 +191,7 @@ describe("Tracker", function()
 
             _G.SetIsInGuild(false)
 
-            tracker:OnSlashWhoResult({{name = "Nubone", level = 5, class = "DRUID"}, })
+            tracker:OnSlashWhoResult({ playerInfo("Nubone", 5), })
             assert.spy(networkSpy).was_called_with(match.is_ref(network), config.Network.Events.PlayerInfoBatch,
                     match.is_table(), "CHANNEL")
             assert.spy(networkSpy).called_at_most(1)
@@ -221,22 +214,30 @@ describe("Tracker", function()
 
     describe("Sync", function()
         it("adds players", function()
-            tracker:ProcessPlayerInfoBatch({{name = "Nubone", level = 5, class = "DRUID"}, }, false)
-            tracker:ProcessPlayerInfoBatch({{name = "Nubtwo", level = 5, class = "WARRIOR"}, }, false)
+            local lbSpies = leaderboardSpies(tracker, config)
+
+            local nub3 = playerInfo("Nubthree", 5)
+            local nub4 = playerInfo("Nubfour", 5, PALADINIDX)
+            local nub5 = playerInfo("Nubfive", 5, PRIESTIDX, time - 100)
             tracker:OnSyncResult({
-                {name = "Nubthree", level = 5, class = "PALADIN"},
-                {name = "Nubfour", level = 5, class = "PRIEST"},
-                {name = "Nubfive", level = 5, classIndex = 6},
+                nub3, nub4, nub5,
             }, false)
 
-            assert.equals(5, #db.factionrealm.leaderboard)
+            assert.spy(lbSpies[0]).was_called_with(match.is_ref(tracker.lbGlobal), nub3)
+            assert.spy(lbSpies[DRUIDIDX]).was_called_with(match.is_ref(tracker.lbPerClass[DRUIDIDX]), nub3)
+
+            assert.spy(lbSpies[0]).was_called_with(match.is_ref(tracker.lbGlobal), nub4)
+            assert.spy(lbSpies[PALADINIDX]).was_called_with(match.is_ref(tracker.lbPerClass[PALADINIDX]), nub4)
+
+            assert.spy(lbSpies[0]).was_called_with(match.is_ref(tracker.lbGlobal), nub5)
+            assert.spy(lbSpies[PRIESTIDX]).was_called_with(match.is_ref(tracker.lbPerClass[PRIESTIDX]), nub5)
+
+            assert.equals(3, #db.factionrealm.leaderboard[0].players)
             assert.same({
-                {name = "Nubone", level = 5, dingedAt = time, classIndex = 11},
-                {name = "Nubtwo", level = 5, dingedAt = time, classIndex = 1},
-                {name = "Nubthree", level = 5, dingedAt = time, classIndex = 2},
-                {name = "Nubfour", level = 5, dingedAt = time, classIndex = 5},
-                {name = "Nubfive", level = 5, dingedAt = time, classIndex = 6},
-            }, db.factionrealm.leaderboard)
+                {name = "Nubthree", level = 5, dingedAt = time, classIndex = DRUIDIDX},
+                {name = "Nubfour", level = 5, dingedAt = time, classIndex = PALADINIDX},
+                {name = "Nubfive", level = 5, dingedAt = time - 100, classIndex = PRIESTIDX},
+            }, db.factionrealm.leaderboard[0].players)
         end)
     end)
 end)

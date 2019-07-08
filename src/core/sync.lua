@@ -30,6 +30,8 @@ function TheClassicRaceSync.new(Config, Core, DB, EventBus, Network)
     self.EventBus = EventBus
     self.Network = Network
 
+    self.classIndex = self.Core:MyClass()
+
     self.isReady = false
     self.offers = {}
     self.syncPartner = nil
@@ -54,9 +56,9 @@ function TheClassicRaceSync:InitSync()
     end
 
     -- request a sync
-    self.Network:SendObject(self.Config.Network.Events.RequestSync, true, "CHANNEL")
+    self.Network:SendObject(self.Config.Network.Events.RequestSync, self.classIndex, "CHANNEL")
     if IsInGuild() then
-        self.Network:SendObject(self.Config.Network.Events.RequestSync, true, "GUILD")
+        self.Network:SendObject(self.Config.Network.Events.RequestSync, self.classIndex, "GUILD")
     end
 
     -- after 5s we attempt to sync with somebody who offered
@@ -76,20 +78,56 @@ function TheClassicRaceSync:OnNetRequestSync(_, sender)
         return
     end
 
-    -- @TODO: should throttle how often we offer, maybe a timestamp when we'd be willing to sync again
     -- offer to the requester to sync with him
-    self.Network:SendObject(self.Config.Network.Events.OfferSync, self.lastSync, "WHISPER", sender)
+    self.Network:SendObject(self.Config.Network.Events.OfferSync, { self.classIndex, self.lastSync }, "WHISPER", sender)
 end
 
-function TheClassicRaceSync:OnNetOfferSync(lastSync, sender)
+function TheClassicRaceSync:OnNetOfferSync(offer, sender)
+    local classIndex, lastSync = offer[1], offer[2]
     TheClassicRace:DebugPrint("OnNetOfferSync(" .. sender .. ")")
     -- add anyone who offers to sync with us
-    table.insert(self.offers, {name = sender, lastSync = lastSync})
+    table.insert(self.offers, {name = sender, classIndex = classIndex, lastSync = lastSync})
 end
 
-function TheClassicRaceSync:SelectPartner(offers)
+function TheClassicRaceSync:SelectPartner()
+    -- we prefer to sync with same class without violating their throttle
+    -- otherwise same class, but violate their throttle
+    -- otherwise any class without violating their throttle
+    -- otherwise any class, but voilate their throttle
+    local now = self.Core:Now()
+    local classIndex = self.classIndex
+    local OfferSyncThrottle = self.Config.OfferSyncThrottle
+
+    local offerModes = {"SAME_CLASS_THROTTLED", "SAME_CLASS", "THROTTLED", "ALL"}
+    for _, offerMode in ipairs(offerModes) do
+        local offers
+        if offerMode == "SAME_CLASS_THROTTLED" then
+            offers = TheClassicRace.list.filter(self.offers, function(offer)
+                return offer.classIndex == classIndex and
+                        (offer.lastSync == nil or offer.lastSync < now - OfferSyncThrottle)
+            end)
+        elseif offerMode == "SAME_CLASS" then
+            offers = TheClassicRace.list.filter(self.offers, function(offer)
+                return offer.classIndex == classIndex
+            end)
+        elseif offerMode == "THROTTLED" then
+            offers = TheClassicRace.list.filter(self.offers, function(offer)
+                return offer.lastSync == nil or offer.lastSync < now - OfferSyncThrottle
+            end)
+        else
+            offers = self.offers
+        end
+
+        if #offers > 0 then
+            return self:SelectPartnerFromList(offers)
+        end
+    end
+end
+
+function TheClassicRaceSync:SelectPartnerFromList(offers)
+    -- select random offer
     local index = math.random(1, #offers)
-    return table.remove(offers, index).name
+    return table.remove(offers, index)
 end
 
 function TheClassicRaceSync:DoSync()
@@ -102,28 +140,18 @@ function TheClassicRaceSync:DoSync()
         return
     end
 
-    local now = self.Core:Now()
-    local OfferSyncThrottle = self.Config.OfferSyncThrottle
-    local preferredOffers = TheClassicRace.list.filter(self.offers, function(offer)
-        return offer.lastSync == nil or offer.lastSync < now - OfferSyncThrottle
+    -- select a partner to sync with
+    self.syncPartner = self:SelectPartner()
+
+    -- remove the partner from the list of offers (in case we want to retry with another partner)
+    self.offers = TheClassicRace.list.filter(self.offers, function(offer)
+        return offer.name ~= self.syncPartner.name
     end)
 
-    if #preferredOffers > 0 then
-        -- select from preferred offers
-        self.syncPartner = self:SelectPartner(preferredOffers)
-        -- also remove the partner from the list of offers
-        self.offers = TheClassicRace.list.filter(self.offers, function(offer)
-            return offer.name ~= self.syncPartner
-        end)
-    else
-        -- randomly select and remove one of the offered sync partners
-        self.syncPartner = self:SelectPartner(self.offers)
-    end
-
-    TheClassicRace:DebugPrint("DoSync(" .. self.syncPartner .. ")")
+    TheClassicRace:DebugPrint("DoSync(" .. self.syncPartner.name .. ")")
 
     -- request the actual start of the sync
-    self.Network:SendObject(self.Config.Network.Events.StartSync, true, "WHISPER", self.syncPartner)
+    self.Network:SendObject(self.Config.Network.Events.StartSync, self.classIndex, "WHISPER", self.syncPartner.name)
 
     -- check if we need to retry syncing after a short timeout
     local _self = self
@@ -134,23 +162,33 @@ function TheClassicRaceSync:DoSync()
     end)
 
     -- sync our data to our sync partner, he can then broadcast anything note worthy to the rest
-    self:Sync(self.syncPartner)
+    -- sync our global leaderboard
+    self:Sync(self.syncPartner.name, 0)
+    -- sync our class leaderboard if our sync partner is of the same class
+    if self.syncPartner.classIndex == self.classIndex then
+        self:Sync(self.syncPartner.name, self.classIndex)
+    end
 end
 
-function TheClassicRaceSync:Sync(syncTo)
-    local batchstr = TheClassicRace.Serializer.SerializePlayerInfoBatch(self.DB.factionrealm.leaderboard)
+function TheClassicRaceSync:Sync(syncTo, classIndex)
+    local batchstr = TheClassicRace.Serializer.SerializePlayerInfoBatch(self.DB.factionrealm.leaderboard[classIndex].players)
 
     self.Network:SendObject(self.Config.Network.Events.SyncPayload, batchstr, "WHISPER", syncTo)
 end
 
-function TheClassicRaceSync:OnNetStartSync(_, sender)
+function TheClassicRaceSync:OnNetStartSync(_, sender, classIndex)
     TheClassicRace:DebugPrint("OnNetStartSync(" .. sender .. ")")
 
     -- mark last sync
     self.lastSync = self.Core:Now()
 
     -- sync data to requester
-    self:Sync(sender)
+    -- sync our global leaderboard
+    self:Sync(sender, 0)
+    -- sync our class leaderboard if our sync partner is of the same class
+    if classIndex == self.classIndex then
+        self:Sync(sender, self.classIndex)
+    end
 end
 
 function TheClassicRaceSync:OnNetSyncPayload(payload, sender)

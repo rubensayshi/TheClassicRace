@@ -33,63 +33,109 @@ function TheClassicRaceChatNotifier.new(Config, Core, DB, EventBus)
     return self
 end
 
-function TheClassicRaceChatNotifier:OnDing(playerInfo, rank)
-    if not self.DB.profile.options.notifications then
-        return
-    end
-
-    -- for any old dings except the rank 1 we ignore
-    if rank > 1 and playerInfo.dingedAt < self.Core:Now() - 600 then
-        return
-    end
-
-    -- no notifications for ranks below threshold
-    if rank > self.DB.profile.options.notificationThreshold then
+function TheClassicRaceChatNotifier:OnDing(playerInfo, globalRank, classRank)
+    -- check if we should report on this ding
+    if not self:ShouldReport(playerInfo, globalRank, classRank) then
         return
     end
 
     if playerInfo.name == self.Core:Me() then
-        self:OnSelfDing(playerInfo, rank)
+        self:OnSelfDing(playerInfo, globalRank, classRank)
     else
-        self:OnStrangerDing(playerInfo, rank)
+        self:OnStrangerDing(playerInfo, globalRank, classRank)
     end
 end
 
-function TheClassicRaceChatNotifier:OnSelfDing(playerInfo, rank)
-    local chatLink = TheClassicRace:PlayerChatLink(playerInfo.name, "You", self.Core:ClassByIndex(playerInfo.classIndex))
 
-    if rank == 1 then
-        if playerInfo.level == self.Config.MaxLevel then
-            TheClassicRace:PPrint("Gratz! The race is over! " .. chatLink .. " are the first to reach max level!!")
-        else
-            TheClassicRace:PPrint("Gratz! " .. chatLink .. " are first to reach level " .. playerInfo.level .. "!")
+function TheClassicRaceChatNotifier:ShouldReport(playerInfo, globalRank, classRank)
+    -- any old dings except rank 1 we ignore
+    if playerInfo.dingedAt < self.Core:Now() - 600
+            and (globalRank == nil or globalRank > 1)
+            and (classRank == nil or classRank > 1) then
+        return false
+    end
+
+    if playerInfo.classIndex ~= self.Core:MyClass() then
+        if not self.DB.profile.options.globalNotifications then
+            return false
+        end
+
+        -- no notifications for globalRanks below threshold of other classes
+        if globalRank == nil or globalRank > self.DB.profile.options.globalNotificationThreshold then
+            return false
         end
     else
+        if not self.DB.profile.options.classNotifications then
+            return false
+        end
+
+        -- no notifications for class ranks below threshold
+        if classRank == nil or classRank > self.DB.profile.options.classNotificationThreshold then
+            return false
+        end
+    end
+
+    return true
+end
+
+function TheClassicRaceChatNotifier:OnSelfDing(playerInfo, globalRank, classRank)
+    self:DingNotification(playerInfo, globalRank, classRank, true)
+end
+
+function TheClassicRaceChatNotifier:OnStrangerDing(playerInfo, globalRank, classRank)
+    self:DingNotification(playerInfo, globalRank, classRank, false)
+end
+
+function TheClassicRaceChatNotifier:DingNotification(playerInfo, globalRank, classRank, isSelf)
+    local className = self.Core:ClassByIndex(playerInfo.classIndex)
+    local prettyClassName = self.Config.PrettyClassNames[className]
+    local chatLink
+    local addressPerson
+    if isSelf then
+        chatLink = TheClassicRace:PlayerChatLink(playerInfo.name, "You", className)
+        addressPerson = chatLink .. " are"
+    else
+        chatLink = TheClassicRace:PlayerChatLink(playerInfo.name, nil, className)
+        addressPerson = chatLink .. " is"
+    end
+
+    if globalRank == 1 then
         if playerInfo.level == self.Config.MaxLevel then
-            TheClassicRace:PPrint("Gratz!  " .. chatLink .. " reached max level as #" .. rank .. "!")
+            TheClassicRace:PPrint("Gratz! The race is over! " .. addressPerson .. " the first to reach max level!!")
+        else
+            TheClassicRace:PPrint("Gratz! " .. addressPerson .. " first to reach level " .. playerInfo.level .. "!")
+        end
+    elseif classRank == 1 and globalRank ~= nil then
+        if playerInfo.level == self.Config.MaxLevel then
+            TheClassicRace:PPrint("Gratz! The race is over! " .. addressPerson .. " the first to reach max level of all " ..
+                    prettyClassName .. ", and #" .. globalRank .. " for all classes!!")
+        else
+            TheClassicRace:PPrint("Gratz! " .. addressPerson .. " first to reach level " .. playerInfo.level .. " of all " ..
+                    prettyClassName .. ", and #" .. globalRank .. " for all classes!")
+        end
+    elseif classRank == 1 then
+        if playerInfo.level == self.Config.MaxLevel then
+            TheClassicRace:PPrint("Gratz! The race is over! " .. addressPerson .. " the first to reach max level of all " ..
+                    prettyClassName .. "!! (not in top " .. self.Config.MaxLeaderboardSize .. " for all classes)")
+        else
+            TheClassicRace:PPrint("Gratz! " .. addressPerson .. " first to reach level " .. playerInfo.level .. " of all " ..
+                    prettyClassName .. "!! (not in top " .. self.Config.MaxLeaderboardSize .. " for all classes)")
+        end
+    elseif globalRank ~= nil then
+        if playerInfo.level == self.Config.MaxLevel then
+            TheClassicRace:PPrint("Gratz!  " .. chatLink .. " reached max level as #" .. classRank .. " of all " .. prettyClassName .. ", " ..
+                    "and #" .. globalRank .. " for all classes!!")
         else
             TheClassicRace:PPrint("Gratz! " .. chatLink .. " reached level " .. playerInfo.level .. "! " ..
-                    "Currently rank #" .. rank .. " in the race!")
-        end
-    end
-end
-
-function TheClassicRaceChatNotifier:OnStrangerDing(playerInfo, rank)
-    local chatLink = TheClassicRace:PlayerChatLink(playerInfo.name, nil, self.Core:ClassByIndex(playerInfo.classIndex))
-
-    if rank == 1 then
-        if playerInfo.level == self.Config.MaxLevel then
-            TheClassicRace:PPrint("The race is over! Gratz to " .. chatLink .. ", first to reach max level!!")
-        else
-            TheClassicRace:PPrint("Gratz to " .. chatLink .. ", " ..
-                    "first to reach level " .. playerInfo.level .. "!")
+                    "Currently rank #" .. classRank .. " of all " .. prettyClassName .. " and #" .. globalRank .. " for all classes in the race!")
         end
     else
         if playerInfo.level == self.Config.MaxLevel then
-            TheClassicRace:PPrint("Gratz to " .. chatLink .. ", reached max level as #" .. rank .. "!")
+            TheClassicRace:PPrint("Gratz!  " .. chatLink .. " reached max level as #" .. classRank .. " of all " .. prettyClassName .. "!" ..
+                    " (not in top " .. self.Config.MaxLeaderboardSize .. " for all classes)")
         else
-            TheClassicRace:PPrint("Gratz to " .. chatLink .. ", reached level " .. playerInfo.level .. "! " ..
-                    "Currently rank #" .. rank .. " in the race!")
+            TheClassicRace:PPrint("Gratz! " .. chatLink .. " reached level " .. playerInfo.level .. " as #" .. classRank
+                    .. " of all " .. prettyClassName .. "! (not in top " .. self.Config.MaxLeaderboardSize .. " for all classes)")
         end
     end
 end

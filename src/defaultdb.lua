@@ -10,15 +10,22 @@ local TheClassicRaceDefaultDB = {
             },
             networking = true,
             dontbump = false,
-            notifications = true,
-            notificationThreshold = 25,
+            globalNotifications = true,
+            globalNotificationThreshold = 25,
+            classNotifications = true,
+            classNotificationThreshold = 10,
         },
     },
     factionrealm = {
+        dbversion = "0.0.0",
         finished = false,
-        levelThreshold = 2,
-        highestLevel = 1,
-        leaderboard = {},
+        leaderboard = {
+            ['**'] = {
+                minLevel = 2,
+                highestLevel = 1,
+                players = {},
+            },
+        },
     },
 }
 

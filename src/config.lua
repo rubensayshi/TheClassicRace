@@ -16,14 +16,16 @@ local TheClassicRaceColors = {
     WARLOCK	    = "|cFF9482C9",
     MONK	    = "|cFF00FF96",
     DRUID       = "|cFFFF7D0A",
-    DEMONHUNTER = "POO",
+    DEMONHUNTER = "|cFFEDA55F",
 }
 TheClassicRace.Colors = TheClassicRaceColors
 
 ---@class TheClassicRaceConfig
 local TheClassicRaceConfig = {
+    Version = "@project-version@",
     Debug = false,
     Trace = false,
+    LibWhoDebug = false,
     --@debug@
     Debug = true,
     Trace = true,
@@ -70,6 +72,21 @@ local TheClassicRaceConfig = {
         MONK = 10,
         DRUID = 11,
         DEMONHUNTER = 12,
+    },
+
+    PrettyClassNames = {
+        WARRIOR = "Warrior",
+        PALADIN = "Paladin",
+        HUNTER = "Hunter",
+        ROGUE = "Rogue",
+        PRIEST = "Priest",
+        DEATHKNIGHT = "DK",
+        SHAMAN = "Shaman",
+        MAGE = "Mage",
+        WARLOCK = "Warlock",
+        MONK = "Monk",
+        DRUID = "Druid",
+        DEMONHUNTER = "Poo",
     },
 
     Network = {

@@ -7,7 +7,7 @@ _G.UnitName = function()
 end
 
 _G.UnitClass = function()
-    return "Druid"
+    return "Druid", "DRUID", 11
 end
 
 _G.UnitRace = function()

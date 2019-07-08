@@ -3,6 +3,7 @@
 TESTS ?= .*
 INCLUDES ?= .*
 EXCLUDES ?= libcompressmock.lua
+TESTOPTS ?=
 
 # if UPLOADRELEASE is set to anything (y, n, maybe, w/e) then we do -d during the `release` step
 # which will attempt to upload the release
@@ -48,6 +49,7 @@ lint:
 tests: libs
 	busted --coverage \
 	-m './src/?.lua;./src/?/?.lua;./src/?/init.lua;./libs/?.lua;./libs/?/?.lua;./tests/?.lua;./tests/?/?.lua' \
+	$(TESTOPTS) \
 	--pattern='$(INCLUDES)' \
 	--exclude-pattern='$(EXCLUDES)' \
 	tests/ tests/util/ --filter='$(TESTS)'

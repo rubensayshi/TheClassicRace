@@ -71,7 +71,7 @@ end
 
 function TheClassicRaceCore:MyClass()
     local _, className, _ = UnitClass("player")
-    return className
+    return self:ClassIndex(className), className
 end
 
 function TheClassicRaceCore:ClassIndex(className)

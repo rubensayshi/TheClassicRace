@@ -12,7 +12,11 @@ function TheClassicRace:slashtcr(input)
 
     --[[SCAN]]--
     if action == "scan" then
-        self.Scanner:StartScan()
+        self.scanner:StartScan()
+
+    --[[CLASS SYNC]]--
+    elseif action == "classscan" then
+        self.classScanner:StartScan()
 
     --[[RESET]]--
     elseif action == "reset" then
@@ -34,23 +38,14 @@ function TheClassicRace:slashtcr(input)
     elseif action == "whoami" then
         self.Core:InitMe(arg1, self.Core:MyRealm())
 
-    --[[LIST]]--
-    elseif action == "list" then
-        TheClassicRace:PPrint("highest level: " .. self.DB.factionrealm.highestLevel)
-        TheClassicRace:PPrint("lower bound threshold: " .. self.DB.factionrealm.levelThreshold)
-
-        for rank, playerInfo in ipairs(self.DB.factionrealm.leaderboard) do
-            print(" - #" .. rank .. " " .. playerInfo.name .. " lvl" .. playerInfo.level)
-        end
-
     --[[DING name level]]--
     elseif action == "ding" then
         TheClassicRace:DebugPrint("Forced Ding [" .. arg1 .. "] lvl" .. arg2 .. ".")
-        self.EventBus:PublishEvent(self.Config.Events.SlashWhoResult, {
+        self.EventBus:PublishEvent(self.Config.Events.SlashWhoResult, {{
             name = arg1,
             level = tonumber(arg2),
-            class = arg3 or "WARRIOR",
-        })
+            class = arg3 or "DRUID",
+        }})
     else
         self:PPrint("Unknown action: " .. tostring(action))
     end

@@ -14,6 +14,10 @@ local BROWN = TheClassicRace.Colors.BROWN
 function TheClassicRace:RegisterOptions()
     local _self = self
 
+    local _, myClassName = self.Core:MyClass()
+    local myPrettyClassName = self.Config.PrettyClassNames[myClassName]
+    local myClassColored = self.Colors[myClassName] .. myPrettyClassName .. "|r"
+
     local configOptions = {
         type = "group",
         args = {
@@ -35,61 +39,114 @@ function TheClassicRace:RegisterOptions()
                 name = "Options",
                 type = "group",
                 args = {
-                    notificationThreshold = {
+                    hrGlobalLb = {
                         order = 10,
-                        name = "Threshold rank for notifications",
+                        name = "Shared Leaderboard",
+                        width = "full",
+                        type = "header",
+                    },
+                    enableNotificationsGlobalLb = {
+                        order = 11,
+                        name = "Enable Notifications",
+                        desc = "Enables / disables the notifications in your chat window",
+                        descStyle = "inline",
+                        width = "full",
+                        type = "toggle",
+                        set = function(_, val) _self.DB.profile.options.globalNotifications = val end,
+                        get = function() return _self.DB.profile.options.globalNotifications end
+                    },
+                    notificationThresholdGlobalLb = {
+                        order = 12,
+                        name = "Minimum rank for notifications",
                         descStyle = "inline",
                         width = "full",
                         type = "range",
                         step = 1,
                         min = 1,
                         max = TheClassicRace.Config.MaxLeaderboardSize,
-                        set = function(_, val) _self.DB.profile.options.notificationThreshold = val end,
-                        get = function() return _self.DB.profile.options.notificationThreshold end
+                        set = function(_, val) _self.DB.profile.options.globalNotificationThreshold = val end,
+                        get = function() return _self.DB.profile.options.globalNotificationThreshold end,
+                        hidden = function() return not _self.DB.profile.options.globalNotifications end,
                     },
-                    notificationThresholdDesc = {
-                        order = 11,
+                    notificationThresholdDescGlobalLb = {
+                        order = 13,
                         name = "Threshold to limit showing level up notifications for top X",
                         descStyle = "inline",
                         width = "full",
                         type = "description",
+                        hidden = function() return not _self.DB.profile.options.globalNotifications end,
                     },
-                    enableNotifications = {
+
+                    hrClassLb = {
                         order = 20,
+                        name = myClassColored .. " Leaderboard",
+                        width = "full",
+                        type = "header",
+                    },
+                    enableNotificationsClassLb = {
+                        order = 21,
                         name = "Enable Notifications",
-                        desc = "Enables / disables the notifications in your chat window",
+                        desc = "Enables / disables the notifications in your chat window for " .. myClassColored .. " leaderboard",
                         descStyle = "inline",
                         width = "full",
                         type = "toggle",
-                        set = function(_, val) _self.DB.profile.options.notifications = val end,
-                        get = function() return _self.DB.profile.options.notifications end
+                        set = function(_, val) _self.DB.profile.options.classNotifications = val end,
+                        get = function() return _self.DB.profile.options.classNotifications end,
+                    },
+                    notificationThresholdClassLb = {
+                        order = 22,
+                        name = "Minimum rank for notifications for " .. myClassColored,
+                        descStyle = "inline",
+                        width = "full",
+                        type = "range",
+                        step = 1,
+                        min = 1,
+                        max = TheClassicRace.Config.MaxLeaderboardSize,
+                        set = function(_, val) _self.DB.profile.options.classNotificationThreshold = val end,
+                        get = function() return _self.DB.profile.options.classNotificationThreshold end,
+                        hidden = function() return not _self.DB.profile.options.classNotifications end,
+                    },
+                    notificationThresholdDescClassLb = {
+                        order = 23,
+                        name = "Threshold to limit showing level up notifications for " .. myClassColored ..  " leaderboard",
+                        descStyle = "inline",
+                        width = "full",
+                        type = "description",
+                        hidden = function() return not _self.DB.profile.options.classNotifications end,
+                    },
+
+                    hr2 = {
+                        order = 30,
+                        name = "Advanced",
+                        width = "full",
+                        type = "header",
                     },
                     enableNetworking = {
-                        order = 30,
+                        order = 31,
                         name = "Enable Sharing / Receiving Data",
                         desc = "Enables / disables the sharing of data through addon channels",
                         descStyle = "inline",
                         width = "full",
                         type = "toggle",
                         set = function(_, val) _self.DB.profile.options.networking = val end,
-                        get = function() return _self.DB.profile.options.networking end
+                        get = function() return _self.DB.profile.options.networking end,
                     },
                     dontBumpScan = {
-                        order = 40,
+                        order = 32,
                         name = "Always /who query",
                         desc = "Do a /who scan every 60s even when data was synced from another player",
                         descStyle = "inline",
                         width = "full",
                         type = "toggle",
                         set = function(_, val) _self.DB.profile.options.dontbump = val end,
-                        get = function() return _self.DB.profile.options.dontbump end
+                        get = function() return _self.DB.profile.options.dontbump end,
                     },
                     reset = {
                         order = 50,
                         name = "Reset Data",
                         type = "execute",
                         func = function()
-                            _self.DB:ResetDB()
+                            _self:ResetDB()
                             _self.StatusFrame:Refresh()
                         end,
                     },

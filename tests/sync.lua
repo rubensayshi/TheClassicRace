@@ -51,7 +51,7 @@ describe("Sync", function()
 
         sync:InitSync()
 
-        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.RequestSync, true, "CHANNEL")
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.RequestSync, 11, "CHANNEL")
         assert.spy(networkSpy).called_at_most(1)
         networkSpy:clear()
 
@@ -68,8 +68,8 @@ describe("Sync", function()
 
         sync:InitSync()
 
-        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.RequestSync, true, "CHANNEL")
-        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.RequestSync, true, "GUILD")
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.RequestSync, 11, "CHANNEL")
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.RequestSync, 11, "GUILD")
         assert.spy(networkSpy).called_at_most(2)
     end)
 
@@ -78,18 +78,19 @@ describe("Sync", function()
 
         sync:InitSync()
 
-        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.RequestSync, true, "CHANNEL")
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.RequestSync, 11, "CHANNEL")
         assert.spy(networkSpy).called_at_most(1)
         networkSpy:clear()
 
-        eventbus:PublishEvent(NetEvents.OfferSync, nil, "Dude")
+        eventbus:PublishEvent(NetEvents.OfferSync, {11, nil}, "Dude")
 
         -- advance our clock so the sync happens
         AdvanceClock(TheClassicRace.Config.RequestSyncWait)
 
-        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.StartSync, true, "WHISPER", "Dude")
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.StartSync, 11, "WHISPER", "Dude")
         assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, "", "WHISPER", "Dude")
-        assert.spy(networkSpy).called_at_most(2)
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, "", "WHISPER", "Dude")
+        assert.spy(networkSpy).called_at_most(3)
     end)
 
     it("can init and chooses preferred partner", function()
@@ -97,33 +98,35 @@ describe("Sync", function()
 
         sync:InitSync()
 
-        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.RequestSync, true, "CHANNEL")
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.RequestSync, 11, "CHANNEL")
         assert.spy(networkSpy).called_at_most(1)
         networkSpy:clear()
 
         -- Dude provides a
-        eventbus:PublishEvent(NetEvents.OfferSync, time, "Dude")
-        eventbus:PublishEvent(NetEvents.OfferSync, nil, "Chick")
+        eventbus:PublishEvent(NetEvents.OfferSync, {11, time}, "Dude")
+        eventbus:PublishEvent(NetEvents.OfferSync, {11, nil}, "Chick")
 
-        -- overload SelectPartner to avoid randomness, hacky but works...
-        sync.SelectPartner = function(self, offers)
-            return table.remove(offers, 1).name
+        -- overload SelectPartnerFromList to avoid randomness, hacky but works...
+        sync.SelectPartnerFromList = function(self, offers)
+            return table.remove(offers, 1)
         end
 
         -- advance our clock so the sync happens
         AdvanceClock(TheClassicRace.Config.RequestSyncWait)
 
-        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.StartSync, true, "WHISPER", "Chick")
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.StartSync, 11, "WHISPER", "Chick")
         assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, "", "WHISPER", "Chick")
-        assert.spy(networkSpy).called_at_most(2)
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, "", "WHISPER", "Chick")
+        assert.spy(networkSpy).called_at_most(3)
         networkSpy:clear()
 
         -- advance our clock so the retry happens
         AdvanceClock(TheClassicRace.Config.RetrySyncWait)
 
-        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.StartSync, true, "WHISPER", "Dude")
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.StartSync, 11, "WHISPER", "Dude")
         assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, "", "WHISPER", "Dude")
-        assert.spy(networkSpy).called_at_most(2)
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, "", "WHISPER", "Dude")
+        assert.spy(networkSpy).called_at_most(3)
     end)
 
     it("can init and sync with partner, won't (re)try other partners", function()
@@ -131,24 +134,25 @@ describe("Sync", function()
 
         sync:InitSync()
 
-        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.RequestSync, true, "CHANNEL")
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.RequestSync, 11, "CHANNEL")
         assert.spy(networkSpy).called_at_most(1)
         networkSpy:clear()
 
-        eventbus:PublishEvent(NetEvents.OfferSync, nil, "Dude")
-        eventbus:PublishEvent(NetEvents.OfferSync, nil, "Chick")
+        eventbus:PublishEvent(NetEvents.OfferSync, {11, nil}, "Dude")
+        eventbus:PublishEvent(NetEvents.OfferSync, {11, nil}, "Chick")
 
-        -- overload SelectPartner to avoid randomness, hacky but works...
-        sync.SelectPartner = function(self, offers)
-            return table.remove(offers, 1).name
+        -- overload SelectPartnerFromList to avoid randomness, hacky but works...
+        sync.SelectPartnerFromList = function(self, offers)
+            return table.remove(offers, 1)
         end
 
         -- advance our clock so the sync happens
         AdvanceClock(TheClassicRace.Config.RequestSyncWait)
 
-        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.StartSync, true, "WHISPER", "Dude")
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.StartSync, 11, "WHISPER", "Dude")
         assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, "", "WHISPER", "Dude")
-        assert.spy(networkSpy).called_at_most(2)
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, "", "WHISPER", "Dude")
+        assert.spy(networkSpy).called_at_most(3)
         networkSpy:clear()
 
         -- receive payload from Dude
@@ -165,32 +169,34 @@ describe("Sync", function()
 
         sync:InitSync()
 
-        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.RequestSync, true, "CHANNEL")
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.RequestSync, 11, "CHANNEL")
         assert.spy(networkSpy).called_at_most(1)
         networkSpy:clear()
 
-        eventbus:PublishEvent(NetEvents.OfferSync, nil, "Dude")
-        eventbus:PublishEvent(NetEvents.OfferSync, nil, "Chick")
+        eventbus:PublishEvent(NetEvents.OfferSync, {11, nil}, "Dude")
+        eventbus:PublishEvent(NetEvents.OfferSync, {11, nil}, "Chick")
 
-        -- overload SelectPartner to avoid randomness, hacky but works...
-        sync.SelectPartner = function(self, offers)
-            return table.remove(offers, 1).name
+        -- overload SelectPartnerFromList to avoid randomness, hacky but works...
+        sync.SelectPartnerFromList = function(self, offers)
+            return table.remove(offers, 1)
         end
 
         -- advance our clock so the sync happens
         AdvanceClock(TheClassicRace.Config.RequestSyncWait)
 
-        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.StartSync, true, "WHISPER", "Dude")
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.StartSync, 11, "WHISPER", "Dude")
         assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, "", "WHISPER", "Dude")
-        assert.spy(networkSpy).called_at_most(2)
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, "", "WHISPER", "Dude")
+        assert.spy(networkSpy).called_at_most(3)
         networkSpy:clear()
 
         -- advance our clock so the retry happens
         AdvanceClock(TheClassicRace.Config.RetrySyncWait)
 
-        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.StartSync, true, "WHISPER", "Chick")
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.StartSync, 11, "WHISPER", "Chick")
         assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, "", "WHISPER", "Chick")
-        assert.spy(networkSpy).called_at_most(2)
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, "", "WHISPER", "Chick")
+        assert.spy(networkSpy).called_at_most(3)
     end)
 
     it("can offer and sync", function()
@@ -199,22 +205,23 @@ describe("Sync", function()
         -- mark as ready
         sync.isReady = true
 
-        eventbus:PublishEvent(NetEvents.RequestSync, true, "Dude")
+        eventbus:PublishEvent(NetEvents.RequestSync, 11, "Dude")
 
-        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.OfferSync, nil, "WHISPER", "Dude")
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.OfferSync, {11, nil}, "WHISPER", "Dude")
         assert.spy(networkSpy).called_at_most(1)
         networkSpy:clear()
 
-        eventbus:PublishEvent(NetEvents.StartSync, true, "Dude")
+        eventbus:PublishEvent(NetEvents.StartSync, 11, "Dude")
 
         assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, "", "WHISPER", "Dude")
-        assert.spy(networkSpy).called_at_most(1)
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, "", "WHISPER", "Dude")
+        assert.spy(networkSpy).called_at_most(2)
     end)
 
     it("won't offer when not ready offer and sync", function()
         local networkSpy = spy.on(network, "SendObject")
 
-        eventbus:PublishEvent(NetEvents.RequestSync, true, "Dude")
+        eventbus:PublishEvent(NetEvents.RequestSync, 11, "Dude")
 
         assert.spy(networkSpy).called_at_most(0)
     end)
@@ -228,7 +235,7 @@ describe("Sync", function()
         -- mark as ready
         sync.isReady = true
 
-        eventbus:PublishEvent(NetEvents.RequestSync, true, "Dude")
+        eventbus:PublishEvent(NetEvents.RequestSync, 11, "Dude")
 
         assert.spy(networkSpy).called_at_most(0)
     end)
@@ -255,20 +262,35 @@ describe("Sync", function()
         assert.spy(networkSpy).called_at_most(0)
     end)
 
-    it("produces proper payload", function()
+    it("produces proper payload for global leaderboard", function()
         local networkSpy = spy.on(network, "SendObject")
 
-        db.factionrealm.leaderboard = {
-            {name = "Nubone", level = 5, dingedAt = time, classIndex = 8},
-            {name = "Nubtwo", level = 5, dingedAt = time, classIndex = 7},
-            {name = "Nubthree", level = 5, dingedAt = time, classIndex = 6},
-            {name = "Nubfour", level = 5, dingedAt = time + 10, classIndex = 5},
-            {name = "Nubfive", level = 5, dingedAt = time - 11, classIndex = 4},
+        db.factionrealm.leaderboard[0].players = {
+            {name = "Nub1", level = 5, dingedAt = time, classIndex = 8},
+            {name = "Nub2", level = 5, dingedAt = time, classIndex = 7},
+            {name = "Nub3", level = 5, dingedAt = time, classIndex = 6},
+            {name = "Nub4", level = 5, dingedAt = time, classIndex = 5},
+            {name = "Nub5", level = 5, dingedAt = time + 10, classIndex = 4},
         }
 
-        sync:Sync("Dude")
+        sync:Sync("Dude", 0)
 
-        local expectedPayload = TheClassicRace.Serializer.SerializePlayerInfoBatch(db.factionrealm.leaderboard)
+        local expectedPayload = TheClassicRace.Serializer.SerializePlayerInfoBatch(db.factionrealm.leaderboard[0].players)
+
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, expectedPayload, "WHISPER", "Dude")
+        assert.spy(networkSpy).called_at_most(1)
+    end)
+
+    it("produces proper payload for class leaderboard", function()
+        local networkSpy = spy.on(network, "SendObject")
+
+        db.factionrealm.leaderboard[8].players = {
+            {name = "Nub1", level = 5, dingedAt = time, classIndex = 8},
+        }
+
+        sync:Sync("Dude", 8)
+
+        local expectedPayload = TheClassicRace.Serializer.SerializePlayerInfoBatch(db.factionrealm.leaderboard[8].players)
 
         assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, expectedPayload, "WHISPER", "Dude")
         assert.spy(networkSpy).called_at_most(1)

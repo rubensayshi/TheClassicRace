@@ -14,6 +14,8 @@ to us through the EventBus.
 ---@field Core TheClassicRaceCore
 ---@field EventBus TheClassicRaceEventBus
 ---@field Network TheClassicRaceNetwork
+---@field lbGlobal TheClassicRaceLeaderboard
+---@field lbPerClass table<string, TheClassicRaceLeaderboard>
 local TheClassicRaceTracker = {}
 TheClassicRaceTracker.__index = TheClassicRaceTracker
 TheClassicRace.Tracker = TheClassicRaceTracker
@@ -32,7 +34,11 @@ function TheClassicRaceTracker.new(Config, Core, DB, EventBus, Network)
     self.EventBus = EventBus
     self.Network = Network
 
-    self.throttles = {}
+    self.lbGlobal = TheClassicRace.Leaderboard(self.Config, self.DB.factionrealm.leaderboard[0])
+    self.lbPerClass = {}
+    for classIndex, _ in ipairs(self.Config.Classes) do
+        self.lbPerClass[classIndex] = TheClassicRace.Leaderboard(self.Config, self.DB.factionrealm.leaderboard[classIndex])
+    end
 
     -- subscribe to network events
     EventBus:RegisterCallback(self.Config.Network.Events.PlayerInfoBatch, self, self.OnNetPlayerInfoBatch)
@@ -47,6 +53,20 @@ end
 function TheClassicRaceTracker:OnScanFinished(endofrace)
     -- if a scan finished but the result wasn't complete then we have too many max level players
     if endofrace then
+        self:RaceFinished()
+    end
+end
+
+function TheClassicRaceTracker:CheckRaceFinished()
+    local raceFinished = true
+    for _, lbdb in pairs(self.DB.factionrealm.leaderboard) do
+        if lbdb.minLevel < self.Config.MaxLevel then
+            raceFinished = false
+            break
+        end
+    end
+
+    if raceFinished then
         self:RaceFinished()
     end
 end
@@ -71,34 +91,36 @@ function TheClassicRaceTracker:OnNetPlayerInfoBatch(payload, _, shouldBroadcast)
 
     local batchstr = payload[1]
     local isRebroadcast = payload[2]
+    local classIndex = payload[3] or 0
 
     local batch = TheClassicRace.Serializer.DeserializePlayerInfoBatch(batchstr)
 
-    self:ProcessPlayerInfoBatch(batch, shouldBroadcast, false)
+    self:ProcessPlayerInfoBatch(batch, shouldBroadcast, false, classIndex)
 
     -- if it wasn't a rebroadcast then it was a /who scan, we can delay our own /who scan a bit
     if not isRebroadcast then
-        self.EventBus:PublishEvent(self.Config.Events.BumpScan)
+        self.EventBus:PublishEvent(self.Config.Events.BumpScan, classIndex)
     end
 end
 
-function TheClassicRaceTracker:OnSlashWhoResult(playerInfoBatch)
-    self:ProcessPlayerInfoBatch(playerInfoBatch, true, false)
+function TheClassicRaceTracker:OnSlashWhoResult(playerInfoBatch, classIndex)
+    self:ProcessPlayerInfoBatch(playerInfoBatch, true, false, classIndex)
 end
 
 function TheClassicRaceTracker:OnSyncResult(playerInfoBatch, shouldBroadcast)
     self:ProcessPlayerInfoBatch(playerInfoBatch, shouldBroadcast, true)
 end
 
-function TheClassicRaceTracker:ProcessPlayerInfoBatch(playerInfoBatch, shouldBroadcast, isRebroadcast)
+function TheClassicRaceTracker:ProcessPlayerInfoBatch(playerInfoBatch, shouldBroadcast, isRebroadcast, classIndex)
     local batch = {}
 
     -- the network message can be a list of playerInfo
+    local changed
     for _, playerInfo in ipairs(playerInfoBatch) do
-        playerInfo = self:ProcessPlayerInfo(playerInfo)
+        playerInfo, changed = self:ProcessPlayerInfo(playerInfo)
 
-        -- ProcessPlayerInfo will return nil if the player wasn't relevant
-        if playerInfo ~= nil then
+        -- if anything was updated then we add the player to the batch to broadcast
+        if changed then
             table.insert(batch, playerInfo)
         end
     end
@@ -107,9 +129,11 @@ function TheClassicRaceTracker:ProcessPlayerInfoBatch(playerInfoBatch, shouldBro
     if shouldBroadcast and #batch > 0 and self.DB.profile.options.networking then
         local serializedBatch = TheClassicRace.Serializer.SerializePlayerInfoBatch(batch)
 
-        self.Network:SendObject(self.Config.Network.Events.PlayerInfoBatch, { serializedBatch, isRebroadcast }, "CHANNEL")
+        self.Network:SendObject(self.Config.Network.Events.PlayerInfoBatch,
+                { serializedBatch, isRebroadcast, classIndex }, "CHANNEL")
         if IsInGuild() then
-            self.Network:SendObject(self.Config.Network.Events.PlayerInfoBatch, { serializedBatch, isRebroadcast }, "GUILD")
+            self.Network:SendObject(self.Config.Network.Events.PlayerInfoBatch,
+                    { serializedBatch, isRebroadcast, classIndex }, "GUILD")
         end
     end
 end
@@ -123,93 +147,37 @@ function TheClassicRaceTracker:ProcessPlayerInfo(playerInfo)
         return
     end
 
-    TheClassicRace:DebugPrint("ProcessPlayerInfo: " .. playerInfo.name .. " lvl" .. playerInfo.level)
-    -- ignore players below our lower bound threshold
-    if playerInfo.level < self.DB.factionrealm.levelThreshold then
-        TheClassicRace:DebugPrint("Ignored player info < lvl" .. self.DB.factionrealm.levelThreshold)
-        return
-    end
+    TheClassicRace:DebugPrint("[T] ProcessPlayerInfo: [" .. tostring(playerInfo.classIndex) .. "][" .. tostring(playerInfo.class) .. "] "
+            .. playerInfo.name .. " lvl" .. playerInfo.level)
 
     if playerInfo.dingedAt == nil then
         playerInfo.dingedAt = self.Core:Now()
     end
 
-    if playerInfo.classIndex == nil then
-        if playerInfo.class == nil then
-            playerInfo.classIndex = 0
-        else
-            playerInfo.classIndex = self.Core:ClassIndex(playerInfo.class)
-        end
+    if playerInfo.classIndex == nil and playerInfo.class ~= nil then
+        playerInfo.classIndex = self.Core:ClassIndex(playerInfo.class)
+        playerInfo.class = nil
     end
 
-    -- determine where to insert the player and his previous rank
-    -- doing this O(n) isn't very efficient, but considering the small size of the leaderboard this is more than fine
-    local insertAtRank = nil
-    local previousRank = nil
-    for rank, player in ipairs(self.DB.factionrealm.leaderboard) do
-        -- find the place where to insert the new player
-        if insertAtRank == nil and playerInfo.level > player.level then
-            insertAtRank = rank
-        end
+    TheClassicRace:DebugPrint("[T] ProcessPlayerInfo: [" .. tostring(playerInfo.classIndex) .. "][" .. tostring(playerInfo.class) .. "] "
+            .. playerInfo.name .. " lvl" .. playerInfo.level)
 
-        -- find a possibly previous entry of this player
-        if previousRank == nil and playerInfo.name == player.name then
-            previousRank = rank
-        end
-    end
-
-    local isNew = previousRank == nil
-    local isDing = not isNew and playerInfo.level > self.DB.factionrealm.leaderboard[previousRank].level
-
-    -- no change
-    if not isNew and not isDing then
-        return
-    end
-
-    -- grow the leaderboard up until the max size
-    if insertAtRank == nil and #self.DB.factionrealm.leaderboard < self.Config.MaxLeaderboardSize then
-        insertAtRank = #self.DB.factionrealm.leaderboard + 1
-    end
-
-    -- not high enough for leaderboard
-    if insertAtRank == nil then
-        return
-    end
-
-    -- remove from previous rank
-    if previousRank ~= nil then
-        table.remove(self.DB.factionrealm.leaderboard, previousRank)
-    end
-
-    -- add at new rank
-    table.insert(self.DB.factionrealm.leaderboard, insertAtRank, {
-        name = playerInfo.name,
-        level = playerInfo.level,
-        dingedAt = playerInfo.dingedAt,
-        classIndex = playerInfo.classIndex,
-    })
-
-    -- truncate when leaderboard reached max size
-    while #self.DB.factionrealm.leaderboard > self.Config.MaxLeaderboardSize do
-        table.remove(self.DB.factionrealm.leaderboard)
+    local globalRank, globalIsChanged = self.lbGlobal:ProcessPlayerInfo(playerInfo)
+    local classRank, classIsChanged, classLowestLevel = nil, nil
+    if playerInfo.classIndex ~= nil then
+        classRank, classIsChanged, classLowestLevel = self.lbPerClass[playerInfo.classIndex]:ProcessPlayerInfo(playerInfo)
     end
 
     -- publish internal event
-    if isNew or isDing then
-        self.EventBus:PublishEvent(self.Config.Events.Ding, playerInfo, insertAtRank)
+    if globalIsChanged or classIsChanged then
+        self.EventBus:PublishEvent(self.Config.Events.Ding, playerInfo, globalRank, classRank)
     end
 
-    -- update highest level
-    self.DB.factionrealm.highestLevel = math.max(self.DB.factionrealm.highestLevel, playerInfo.level)
-
-    -- we only care about levels >= our bottom ranked on the leaderboard
-    if #self.DB.factionrealm.leaderboard >= self.Config.MaxLeaderboardSize then
-        self.DB.factionrealm.levelThreshold = self.DB.factionrealm.leaderboard[#self.DB.factionrealm.leaderboard].level
-
-        if self.DB.factionrealm.levelThreshold == self.Config.MaxLevel then
-            self:RaceFinished()
-        end
+    -- check if the race is finished if the class leaderboard is finished
+    if classLowestLevel == self.Config.MaxLevel then
+        self:CheckRaceFinished()
     end
 
-    return playerInfo
+    -- return normalized playerinfo and boolean if anything changed
+    return playerInfo, globalIsChanged or classIsChanged
 end

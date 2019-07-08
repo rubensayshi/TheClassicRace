@@ -21,7 +21,8 @@ local LibStub = _G.LibStub
 ---       manages the leaderboard based on events
 ---@field ChatNotifier  TheClassicRaceChatNotifier
 ---       writes notifications in chat window based on events
----@field Sync  TheClassicRaceSync
+---@field updater       TheClassicRaceUpdater
+---@field Sync          TheClassicRaceSync
 ---       handles syncing when coming online
 ---@field StatusFrame   TheClassicRaceStatusFrame
 ---       GUI element to display the leaderboard
@@ -29,25 +30,28 @@ local LibStub = _G.LibStub
 TheClassicRace = LibStub("AceAddon-3.0"):NewAddon("TheClassicRace", "AceConsole-3.0")
 
 function TheClassicRace:OnInitialize()
+    self.Config = TheClassicRace.Config
+    self.Colors = TheClassicRace.Colors
     self.DB = LibStub("AceDB-3.0"):New("TheClassicRace_DB", TheClassicRace.DefaultDB, true)
 
-    self:RegisterOptions()
-    self:RegisterChatCommand("tcr", "slashtcr")
+    self:DBMigrations()
 
     -- determine who we are
     local player, realm = UnitFullName("player")
 
     -- init components (should have minimal side effects)
-    self.Config = TheClassicRace.Config
-    self.Colors = TheClassicRace.Colors
     self.Core = TheClassicRace.Core(self.Config, player, realm)
     self.EventBus = TheClassicRace.EventBus()
     self.Network = TheClassicRace.Network(self.Core, self.EventBus)
-    self.Scanner = TheClassicRace.Scanner(self.Core, self.DB, self.EventBus, who)
     self.Tracker = TheClassicRace.Tracker(self.Config, self.Core, self.DB, self.EventBus, self.Network)
     self.ChatNotifier = TheClassicRace.ChatNotifier(self.Config, self.Core, self.DB, self.EventBus)
     self.Sync = TheClassicRace.Sync(self.Config, self.Core, self.DB, self.EventBus, self.Network)
+    self.updater = TheClassicRace.Updater(self.Core, self.EventBus)
     self.StatusFrame = TheClassicRace.StatusFrame(self.Config, self.Core, self.DB, self.EventBus)
+
+    -- init a global scanner and a class specific scanner
+    self.scanner = TheClassicRace.Scanner(self.Core, self.DB, self.EventBus)
+    self.classScanner = TheClassicRace.Scanner(self.Core, self.DB, self.EventBus, self.Core:MyClass())
 
     self.EventBus:RegisterCallback(self.Config.Events.NetworkReady, self, function()
         self.Sync:InitSync()
@@ -60,6 +64,9 @@ function TheClassicRace:OnEnable()
     -- debug print, will also help us know if debugging is enabled
     self:DebugPrint("TheClassicRace:OnEnable")
 
+    self:RegisterOptions()
+    self:RegisterChatCommand("tcr", "slashtcr")
+
     -- determine who we are
     local player, realm = UnitFullName("player")
     self.Core:InitMe(player, realm)
@@ -68,13 +75,26 @@ function TheClassicRace:OnEnable()
     self.Network:Init()
 
     -- init the scanner ticker, first scan will happen when the ticker ticks
-    self.Scanner:InitTicker()
+    self.scanner:InitTicker()
+    self.classScanner:InitTicker(20)
 
     if self.DB.profile.firsttime then
         self.DB.profile.firsttime = false
 
         self.StatusFrame:Show()
     end
+end
+
+function TheClassicRace:DBMigrations()
+    -- fresh DB or pre-versioning DB, reset and init ...
+    if self.DB.factionrealm.dbversion == "0.0.0" then
+        self:ResetDB()
+    end
+end
+
+function TheClassicRace:ResetDB()
+    self.DB:ResetDB()
+    self.DB.factionrealm.dbversion = self.Config.Version
 end
 
 --[[

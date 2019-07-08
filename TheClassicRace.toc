@@ -31,4 +31,6 @@ src\core\scan.lua
 src\core\chat-notifier.lua
 src\core\sync.lua
 src\core\serializer.lua
+src\core\leaderboard.lua
+src\core\updater.lua
 src\gui\status-frame.lua

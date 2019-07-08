@@ -8,7 +8,7 @@ local TheClassicRace = _G.TheClassicRace
 local AceGUI = LibStub("AceGUI-3.0")
 
 -- WoW API
-local GameFontNormalLarge = _G.GameFontNormalLarge
+local GameFontNormalLarge, CLASS_ICON_TCOORDS = _G.GameFontNormalLarge, _G.CLASS_ICON_TCOORDS
 
 -- colors
 local SEYELLOW = TheClassicRace.Colors.SYSTEM_EVENT_YELLOW
@@ -32,12 +32,18 @@ function TheClassicRaceStatusFrame.new(Config, Core, DB, EventBus)
     self.DB = DB
     self.EventBus = EventBus
 
+    self.myClassIndex, self.myClass = self.Core:MyClass()
+
     -- subscribe to local events
     EventBus:RegisterCallback(self.Config.Events.Ding, self, self.OnDing)
     EventBus:RegisterCallback(self.Config.Events.RefreshGUI, self, self.OnRefreshGUI)
 
+    self.classIndex = 0
     self.frame = nil
+    self.tabicons = nil
     self.contentframe = nil
+
+    self:OnRefreshGUI()
 
     return self
 end
@@ -51,7 +57,10 @@ function TheClassicRaceStatusFrame:OnRefreshGUI()
 end
 
 function TheClassicRaceStatusFrame:Refresh()
+    self.players = self.DB.factionrealm.leaderboard[self.classIndex].players
+
     if self.frame ~= nil and self.contentframe ~= nil then
+        self:RenderTabicons()
         self:Render()
     end
 end
@@ -70,14 +79,78 @@ function TheClassicRaceStatusFrame:Show()
     frame:SetHeight(120)
     frame:SetLayout("Flow")
     frame:SetCallback("OnClose", function(widget)
-        widget:ReleaseChildren()
+        TheClassicRace:DebugPrint("OnClose")
+
+        -- release self
         widget:Release()
         _self.frame = nil
+
+        -- release tabicons
+        if _self.tabicons then
+            _self.tabicons:Release()
+            _self.tabicons = nil
+        end
     end)
+    frame:DoLayout()
 
     self.frame = frame
 
+    self:RenderTabicons()
     self:Render()
+end
+
+function TheClassicRaceStatusFrame:RenderTabicons()
+    -- close currently open frame
+    if self.tabicons then
+        self.tabicons:Release()
+    end
+
+    local tabicons = AceGUI:Create("SimpleGroup")
+    tabicons:SetLayout("Flow")
+    tabicons:SetWidth(20)
+    tabicons:SetHeight(120)
+    tabicons:SetFullWidth(false)
+    tabicons.frame:Show()
+
+    -- global
+    local globalIcon = AceGUI:Create("Icon")
+    globalIcon:SetCallback("OnClick", function()
+        self.classIndex = 0
+        self:Refresh()
+    end)
+    globalIcon:SetLabel(nil)
+    globalIcon:SetImage("Interface\\PaperDollInfoFrame\\SpellSchoolIcon7")
+    globalIcon:SetImageSize(20, 20)
+    globalIcon:SetWidth(20)
+    globalIcon:SetHeight(20)
+    if self.classIndex ~= 0 then
+        globalIcon.image:SetVertexColor(0.8, 0.8, 0.8, 0.8)
+    end
+    tabicons:AddChild(globalIcon)
+
+    -- own class
+    local coords = CLASS_ICON_TCOORDS[self.myClass]
+    local classIcon = AceGUI:Create("Icon")
+    classIcon:SetCallback("OnClick", function()
+        self.classIndex = self.myClassIndex
+        self:Refresh()
+    end)
+    classIcon:SetLabel(nil)
+    classIcon:SetImage("Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES", unpack(coords))
+    classIcon:SetImageSize(20, 20)
+    classIcon:SetWidth(20)
+    classIcon:SetHeight(20)
+    if self.classIndex ~= self.myClassIndex then
+        classIcon.image:SetVertexColor(0.8, 0.8, 0.8, 0.8)
+    end
+    tabicons:AddChild(classIcon)
+
+    -- attach to the edge of the main frame
+    tabicons:ClearAllPoints()
+    tabicons.frame:SetPoint("TOPLEFT", self.frame.frame, "TOPRIGHT")
+    tabicons.frame:Show()
+
+    self.tabicons = tabicons
 end
 
 function TheClassicRaceStatusFrame:Render()
@@ -99,12 +172,12 @@ function TheClassicRaceStatusFrame:Render()
     self.frame:AddChild(frame)
 
     -- display the leader
-    if #self.DB.factionrealm.leaderboard > 0 then
-        local leader = self.DB.factionrealm.leaderboard[1]
+    if #self.players > 0 then
+        local leader = self.players[1]
 
         -- determine your own rank
         local selfRank = nil
-        for rank, playerInfo in ipairs(self.DB.factionrealm.leaderboard) do
+        for rank, playerInfo in ipairs(self.players) do
             if playerInfo.name == self.Core:Me() then
                 selfRank = rank
                 break
@@ -115,7 +188,7 @@ function TheClassicRaceStatusFrame:Render()
         if selfRank ~= nil and selfRank == 1 then
             local leaderLabel = AceGUI:Create("Label")
             leaderLabel:SetFullWidth(true)
-            leaderLabel:SetText(SEYELLOW .. "You" .. WHITE .. " are #1!" .. WHITE .. " lvl" .. leader.level)
+            leaderLabel:SetText(SEYELLOW .. "You|r are #1! lvl" .. leader.level)
             leaderLabel:SetFont(GameFontNormalLarge:GetFont())
             leaderLabel.label:SetJustifyH("CENTER")
             frame:AddChild(leaderLabel)
@@ -128,7 +201,7 @@ function TheClassicRaceStatusFrame:Render()
 
             local leaderLabel = AceGUI:Create("Label")
             leaderLabel:SetFullWidth(true)
-            leaderLabel:SetText(WHITE .. "#1 " .. color .. leader.name .. WHITE .. " lvl" .. leader.level)
+            leaderLabel:SetText("#1 " .. color .. leader.name .. "|r lvl" .. leader.level)
             leaderLabel:SetFont(GameFontNormalLarge:GetFont())
             leaderLabel.label:SetJustifyH("CENTER")
             frame:AddChild(leaderLabel)
@@ -138,7 +211,7 @@ function TheClassicRaceStatusFrame:Render()
         if selfRank ~= nil and selfRank > 1 then
             local you = AceGUI:Create("Label")
             you:SetFullWidth(true)
-            you:SetText(WHITE .. "You are #" .. selfRank .. "!" .. WHITE .. " lvl" .. self.DB.factionrealm.leaderboard[selfRank].level)
+            you:SetText("You are #" .. selfRank .. "! lvl" .. self.players[selfRank].level)
             you:SetFont(GameFontNormalLarge:GetFont())
             you.label:SetJustifyH("CENTER")
             frame:AddChild(you)
@@ -157,7 +230,7 @@ function TheClassicRaceStatusFrame:Render()
     scroll:SetFullHeight(true)
     scrolltainer:AddChild(scroll)
 
-    for rank, playerInfo in ipairs(self.DB.factionrealm.leaderboard) do
+    for rank, playerInfo in ipairs(self.players) do
         if rank ~= 1 then
             local playerClass = self.Core:ClassByIndex(playerInfo.classIndex)
             local color = TheClassicRace.Colors[playerClass]
@@ -166,7 +239,7 @@ function TheClassicRaceStatusFrame:Render()
             end
 
             local player = AceGUI:Create("Label")
-            player:SetText(WHITE .. "#" .. rank .. " " .. color .. playerInfo.name .. WHITE .. " lvl" .. playerInfo.level)
+            player:SetText("#" .. rank .. " " .. color .. playerInfo.name .. "|r lvl" .. playerInfo.level)
 
             scroll:AddChild(player)
         end

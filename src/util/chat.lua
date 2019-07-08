@@ -60,7 +60,5 @@ function TheClassicRace:PlayerChatLink(playerName, linkTitle, className)
         color = TheClassicRace.Colors[className]
     end
 
-    return color ..
-        "|Hplayer:" .. playerName .. "|h[" .. linkTitle .. "]|h" ..
-        TheClassicRace.Colors.WHITE
+    return color .. "|Hplayer:" .. playerName .. "|h[" .. linkTitle .. "]|h|r"
 end

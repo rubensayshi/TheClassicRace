@@ -6,7 +6,7 @@ local LibStub = _G.LibStub
 local LibWho = LibStub("LibWho-2.0")
 
 -- WoW API
-local C_Timer, CreateFrame = _G.C_Timer, _G.CreateFrame
+local C_Timer = _G.C_Timer
 
 --[[
 Scanner is responsible for periodically doing a Scan to get updated results
@@ -28,53 +28,30 @@ setmetatable(TheClassicRaceScanner, {
     end,
 })
 
-function TheClassicRaceScanner.new(Core, DB, EventBus)
+function TheClassicRaceScanner.new(Core, DB, EventBus, classIndex)
     local self = setmetatable({}, TheClassicRaceScanner)
 
     self.Core = Core
     self.DB = DB
     self.EventBus = EventBus
+
+    self.classIndex = classIndex or 0
+    self.query = ""
+    if self.classIndex ~= 0 then
+        self.query = "c-" .. self.Core:ClassByIndex(self.classIndex)
+    end
+
     self.Ticker = nil
     self.Scan = nil
 
-    if TheClassicRace.Config.Trace then
+    if TheClassicRace.Config.LibWhoDebug then
         LibWho:SetWhoLibDebug(true)
     end
-
-    -- we register our callback globally to LibWho so any /who results can be consumed
-    LibWho:RegisterCallback("WHOLIB_QUERY_RESULT", function(_, _, result, complete)
-        if complete then
-            self:ProcessWhoResult(result)
-        end
-    end)
-
-    -- create a Frame to use as thread to receive events on
-    self.Thread = CreateFrame("Frame")
-    self.Thread:Hide()
-    self.Thread:SetScript("OnEvent", function(_, event, ...)
-        if (event == "PLAYER_LEVEL_UP") then
-            self:OnPlayerLevelUp(...)
-        end
-    end)
-
-    -- register for level up events
-    self.Thread:RegisterEvent("PLAYER_LEVEL_UP")
 
     -- subscribe to local events
     EventBus:RegisterCallback(TheClassicRace.Config.Events.BumpScan, self, self.OnBumpScan)
 
     return self
-end
-
-function TheClassicRaceScanner:OnPlayerLevelUp(level)
-    TheClassicRace:DebugPrint("OnPlayerLevelUp(" .. tostring(level) .. ")")
-
-    -- we fake an /who result
-    self.EventBus:PublishEvent(TheClassicRace.Config.Events.SlashWhoResult, {{
-        name = self.Core:Me(),
-        level = level,
-        class = self.Core:MyClass(),
-    }, })
 end
 
 function TheClassicRaceScanner:ProcessWhoResult(result)
@@ -99,15 +76,14 @@ function TheClassicRaceScanner:ProcessWhoResult(result)
         batch[idx] = {
             name = name,
             level = player.Level,
-            -- @TODO: this is localized so only works on english atm
-            class = string.upper(player.Class),
+            class = string.upper(player.NoLocaleClass or player.Class),
         }
     end
 
-    self.EventBus:PublishEvent(TheClassicRace.Config.Events.SlashWhoResult, batch)
+    self.EventBus:PublishEvent(TheClassicRace.Config.Events.SlashWhoResult, batch, self.classIndex)
 end
 
-function TheClassicRaceScanner:InitTicker()
+function TheClassicRaceScanner:InitTicker(offset)
     -- don't setup ticker when we know the race has finished
     if self.DB.factionrealm.finished then
         return
@@ -120,18 +96,22 @@ function TheClassicRaceScanner:InitTicker()
     -- random offset just so that not everyone who logs in after a server restart is completely synced up
     local randomOffset = math.random(0, 10)
 
-    self.Ticker = C_Timer.NewTicker(60 + randomOffset, function()
+    self.Ticker = C_Timer.NewTicker(60 + (offset or 0) + randomOffset, function()
         self:StartScan()
     end)
 end
 
-function TheClassicRaceScanner:OnBumpScan()
+function TheClassicRaceScanner:OnBumpScan(classIndex)
     -- don't bump ticker when we know the race has finished
     if self.DB.realm.finished then
         return
     end
     -- don't bump ticker when we configured it not to
     if self.DB.profile.options.dontbump then
+        return
+    end
+    -- don't bump ticker when the source did not query for the same class as us
+    if self.classIndex ~= classIndex then
         return
     end
 
@@ -158,24 +138,28 @@ function TheClassicRaceScanner:StartScan()
         return
     end
 
-    -- we don't start another scan when the queue isn't empty yet
-    if not LibWho:AllQueuesEmpty() then
-        TheClassicRace:DebugPrint("StartScan but LibWho not ready")
-        return
-    end
-
     -- don't start a scan if previous is still busy
     if self.Scan ~= nil and not self.Scan:IsDone() then
         TheClassicRace:DebugPrint("StartScan but scan still in progress")
         return
     end
 
+    local _self = self
     local who = function(min, max, cb)
-        LibWho:Who(min .. "-" .. max, { queue = LibWho.WHOLIB_QUERY_QUIET, callback = cb })
+        -- wrap the callback so we can call ProcessWhoResult
+        local function resultcb(query, result, complete)
+            cb(query, result, complete)
+
+            if complete then
+                _self:ProcessWhoResult(result)
+            end
+        end
+
+        LibWho:Who(_self.query .. " " .. min .. "-" .. max, { queue = LibWho.WHOLIB_QUERY_QUIET, callback = resultcb })
     end
 
-    local min = self.DB.factionrealm.levelThreshold
-    local prevhighestlvl = self.DB.factionrealm.highestLevel
+    local min = self.DB.factionrealm.leaderboard[self.classIndex].minLevel
+    local prevhighestlvl = self.DB.factionrealm.leaderboard[self.classIndex].highestLevel
     local max = TheClassicRace.Config.MaxLevel
 
     self.Scan = TheClassicRace.Scan(self.Core, self.DB, self.EventBus, who, min, prevhighestlvl, max)
