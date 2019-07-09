@@ -28,6 +28,7 @@ require("core.event-bus")
 require("core.scan")
 require("core.tracker")
 require("core.sync")
+require("core.serializer")
 require("networking.network")
 
 return TheClassicRace

@@ -30,4 +30,5 @@ src\core\scanner.lua
 src\core\scan.lua
 src\core\chat-notifier.lua
 src\core\sync.lua
+src\core\serializer.lua
 src\gui\status-frame.lua

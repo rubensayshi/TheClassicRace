@@ -88,7 +88,7 @@ describe("Sync", function()
         AdvanceClock(TheClassicRace.Config.RequestSyncWait)
 
         assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.StartSync, true, "WHISPER", "Dude")
-        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, match.is_table(), "WHISPER", "Dude")
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, "", "WHISPER", "Dude")
         assert.spy(networkSpy).called_at_most(2)
     end)
 
@@ -114,7 +114,7 @@ describe("Sync", function()
         AdvanceClock(TheClassicRace.Config.RequestSyncWait)
 
         assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.StartSync, true, "WHISPER", "Chick")
-        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, match.is_table(), "WHISPER", "Chick")
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, "", "WHISPER", "Chick")
         assert.spy(networkSpy).called_at_most(2)
         networkSpy:clear()
 
@@ -122,7 +122,7 @@ describe("Sync", function()
         AdvanceClock(TheClassicRace.Config.RetrySyncWait)
 
         assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.StartSync, true, "WHISPER", "Dude")
-        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, match.is_table(), "WHISPER", "Dude")
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, "", "WHISPER", "Dude")
         assert.spy(networkSpy).called_at_most(2)
     end)
 
@@ -147,12 +147,12 @@ describe("Sync", function()
         AdvanceClock(TheClassicRace.Config.RequestSyncWait)
 
         assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.StartSync, true, "WHISPER", "Dude")
-        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, match.is_table(), "WHISPER", "Dude")
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, "", "WHISPER", "Dude")
         assert.spy(networkSpy).called_at_most(2)
         networkSpy:clear()
 
         -- receive payload from Dude
-        eventbus:PublishEvent(NetEvents.SyncPayload, {}, "Dude")
+        eventbus:PublishEvent(NetEvents.SyncPayload, "", "Dude")
 
         -- advance our clock so the retry happens
         AdvanceClock(TheClassicRace.Config.RetrySyncWait)
@@ -181,7 +181,7 @@ describe("Sync", function()
         AdvanceClock(TheClassicRace.Config.RequestSyncWait)
 
         assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.StartSync, true, "WHISPER", "Dude")
-        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, match.is_table(), "WHISPER", "Dude")
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, "", "WHISPER", "Dude")
         assert.spy(networkSpy).called_at_most(2)
         networkSpy:clear()
 
@@ -189,7 +189,7 @@ describe("Sync", function()
         AdvanceClock(TheClassicRace.Config.RetrySyncWait)
 
         assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.StartSync, true, "WHISPER", "Chick")
-        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, match.is_table(), "WHISPER", "Chick")
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, "", "WHISPER", "Chick")
         assert.spy(networkSpy).called_at_most(2)
     end)
 
@@ -207,7 +207,7 @@ describe("Sync", function()
 
         eventbus:PublishEvent(NetEvents.StartSync, true, "Dude")
 
-        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, match.is_table(), "WHISPER", "Dude")
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, "", "WHISPER", "Dude")
         assert.spy(networkSpy).called_at_most(1)
     end)
 
@@ -259,45 +259,39 @@ describe("Sync", function()
         local networkSpy = spy.on(network, "SendObject")
 
         db.factionrealm.leaderboard = {
-            {name = "Nub1", level = 5, dingedAt = time, classIndex = 8},
-            {name = "Nub2", level = 5, dingedAt = time, classIndex = 7},
-            {name = "Nub3", level = 5, dingedAt = time, classIndex = 6},
-            {name = "Nub4", level = 5, dingedAt = time, classIndex = 5},
-            {name = "Nub5", level = 5, dingedAt = time, classIndex = 4},
+            {name = "Nubone", level = 5, dingedAt = time, classIndex = 8},
+            {name = "Nubtwo", level = 5, dingedAt = time, classIndex = 7},
+            {name = "Nubthree", level = 5, dingedAt = time, classIndex = 6},
+            {name = "Nubfour", level = 5, dingedAt = time + 10, classIndex = 5},
+            {name = "Nubfive", level = 5, dingedAt = time - 11, classIndex = 4},
         }
 
         sync:Sync("Dude")
 
-        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, match.is_same({
-            {"Nub1", 5, 0, 8},
-            {"Nub2", 5, 0, 7},
-            {"Nub3", 5, 0, 6},
-            {"Nub4", 5, 0, 5},
-            {"Nub5", 5, 0, 4},
-            time,
-        }), "WHISPER", "Dude")
+        local expectedPayload = TheClassicRace.Serializer.SerializePlayerInfoBatch(db.factionrealm.leaderboard)
+
+        assert.spy(networkSpy).was_called_with(match.is_ref(network), NetEvents.SyncPayload, expectedPayload, "WHISPER", "Dude")
         assert.spy(networkSpy).called_at_most(1)
     end)
 
     it("consumes proper payload", function()
         local eventBusSpy = spy.on(eventbus, "PublishEvent")
 
-        sync:OnNetSyncPayload({
-            {"Nub1", 5, 0, 8},
-            {"Nub2", 5, 0, 7},
-            {"Nub3", 5, 0, 6},
-            {"Nub4", 5, 10, 5},
-            {"Nub5", 5, -10, 4},
-            time,
-        }, "Dude")
+        sync:OnNetSyncPayload(TheClassicRace.Serializer.SerializePlayerInfoBatch({
+            {name = "Nubone", level = 5, dingedAt = time, classIndex = 8},
+            {name = "Nubtwo", level = 5, dingedAt = time, classIndex = 7},
+            {name = "Nubthree", level = 5, dingedAt = time, classIndex = 6},
+            {name = "Nubfour", level = 5, dingedAt = time + 10, classIndex = 5},
+            {name = "Nubfive", level = 5, dingedAt = time - 11, classIndex = 4},
+        }), "Dude")
 
         assert.spy(eventBusSpy).was_called_with(match.is_ref(eventbus), Events.SyncResult,
                 match.is_same({
-                    {name = "Nub1", level = 5, dingedAt = time, classIndex = 8},
-                    {name = "Nub2", level = 5, dingedAt = time, classIndex = 7},
-                    {name = "Nub3", level = 5, dingedAt = time, classIndex = 6},
-                    {name = "Nub4", level = 5, dingedAt = time + 10, classIndex = 5},
-                    {name = "Nub5", level = 5, dingedAt = time - 10, classIndex = 4},
+                    {name = "Nubone", level = 5, dingedAt = time, classIndex = 8},
+                    {name = "Nubtwo", level = 5, dingedAt = time, classIndex = 7},
+                    {name = "Nubthree", level = 5, dingedAt = time, classIndex = 6},
+                    {name = "Nubfour", level = 5, dingedAt = time + 10, classIndex = 5},
+                    {name = "Nubfive", level = 5, dingedAt = time - 11, classIndex = 4},
                 }), false)
         assert.spy(eventBusSpy).called_at_most(1)
     end)

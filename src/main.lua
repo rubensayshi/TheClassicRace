@@ -7,6 +7,8 @@ local LibStub = _G.LibStub
 ---       our config table
 ---@field Colors        TheClassicRaceColors
 ---       our color shorthand table
+---@field Serializer    TheClassicRaceSerializer
+---       our custom serializer
 ---@field Core          TheClassicRaceCore
 ---       contains basic helpers such as :Me(), :Now(), etc
 ---@field EventBus      TheClassicRaceEventBus
@@ -37,6 +39,7 @@ function TheClassicRace:OnInitialize()
 
     -- init components (should have minimal side effects)
     self.Config = TheClassicRace.Config
+    self.Colors = TheClassicRace.Colors
     self.Core = TheClassicRace.Core(self.Config, player, realm)
     self.EventBus = TheClassicRace.EventBus()
     self.Network = TheClassicRace.Network(self.Core, self.EventBus)

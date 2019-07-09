@@ -36,7 +36,7 @@ describe("Scan", function()
 
         db = LibStub("AceDB-3.0"):New("TheClassicRace_DB", TheClassicRace.DefaultDB, true)
         db:ResetDB()
-        core = TheClassicRace.Core(TheClassicRace.Config, "Nub1", "NubVille")
+        core = TheClassicRace.Core(TheClassicRace.Config, "Nubone", "NubVille")
         -- mock core:Now() to return our mocked time
         function core:Now() return time end
         eventbus = TheClassicRace.EventBus()
@@ -63,7 +63,7 @@ describe("Scan", function()
         libWhoMock:ExpectWho(14, 60, true, {})
         libWhoMock:ExpectWho(13, 60, true, {{Name = "Leader", Level = 13}})
         -- scan down
-        libWhoMock:ExpectWho(12, 12, false, {{Name = "Nub1", Level = 12}})
+        libWhoMock:ExpectWho(12, 12, false, {{Name = "Nubone", Level = 12}})
 
         scan:Start()
         assert.equals(true, scan:IsDone())
@@ -86,11 +86,11 @@ describe("Scan", function()
         libWhoMock:ExpectWho(8, 60, true, {{Name = "Leader", Level = 13}})
         -- scan down
         libWhoMock:ExpectWho(7, 7, true, {
-            {Name = "Nub1", Level = 7}})
+            {Name = "Nubone", Level = 7}})
         libWhoMock:ExpectWho(6, 7, true, {
-            {Name = "Nub1", Level = 7}, {Name = "Nub2", Level = 6}})
+            {Name = "Nubone", Level = 7}, {Name = "Nubtwo", Level = 6}})
         libWhoMock:ExpectWho(5, 7, false, {
-            {Name = "Nub1", Level = 7}, {Name = "Nub2", Level = 6}, {Name = "Nub3", Level = 5}})
+            {Name = "Nubone", Level = 7}, {Name = "Nubtwo", Level = 6}, {Name = "Nubthree", Level = 5}})
 
         scan:Start()
         assert.equals(true, scan:IsDone())
@@ -113,11 +113,11 @@ describe("Scan", function()
         libWhoMock:ExpectWho(42, 60, true, {{Name = "Leader", Level = 42}})
         -- scan down
         libWhoMock:ExpectWho(41, 41, true, {
-            {Name = "Nub1", Level = 41}})
+            {Name = "Nubone", Level = 41}})
         libWhoMock:ExpectWho(40, 41, true, {
-            {Name = "Nub1", Level = 41}, {Name = "Nub2", Level = 40}})
+            {Name = "Nubone", Level = 41}, {Name = "Nubtwo", Level = 40}})
         libWhoMock:ExpectWho(39, 41, false, {
-            {Name = "Nub1", Level = 41}, {Name = "Nub2", Level = 40}, {Name = "Nub3", Level = 39}})
+            {Name = "Nubone", Level = 41}, {Name = "Nubtwo", Level = 40}, {Name = "Nubthree", Level = 39}})
 
         scan:Start()
         assert.equals(true, scan:IsDone())
@@ -139,7 +139,7 @@ describe("Scan", function()
         libWhoMock:ExpectWho(46, 60, true, {})
         libWhoMock:ExpectWho(39, 60, true, {{Name = "Leader", Level = 42}})
         -- scan down
-        libWhoMock:ExpectWho(38, 38, false, {{Name = "Nub1", Level = 37}})
+        libWhoMock:ExpectWho(38, 38, false, {{Name = "Nubone", Level = 37}})
 
         scan:Start()
         assert.equals(true, scan:IsDone())
@@ -161,7 +161,7 @@ describe("Scan", function()
         libWhoMock:ExpectWho(43, 60, true, {})
         libWhoMock:ExpectWho(42, 60, true, {{Name = "Leader", Level = 42}})
         -- scan down
-        libWhoMock:ExpectWho(41, 41, false, {{Name = "Nub1", Level = 41}})
+        libWhoMock:ExpectWho(41, 41, false, {{Name = "Nubone", Level = 41}})
 
         scan:Start()
         assert.equals(true, scan:IsDone())
@@ -182,7 +182,7 @@ describe("Scan", function()
         -- shortcut
         libWhoMock:ExpectWho(41, 60, true, {{Name = "Leader", Level = 42}})
         -- scan down
-        libWhoMock:ExpectWho(40, 40, false, {{Name = "Nub1", Level = 40}})
+        libWhoMock:ExpectWho(40, 40, false, {{Name = "Nubone", Level = 40}})
 
         scan:Start()
         assert.equals(true, scan:IsDone())
@@ -223,7 +223,7 @@ describe("Scan", function()
         libWhoMock:ExpectWho(44, 60, true, {})
         libWhoMock:ExpectWho(41, 60, true, {{Name = "Leader", Level = 42}})
         -- scan down
-        libWhoMock:ExpectWho(40, 40, false, {{Name = "Nub1", Level = 40}})
+        libWhoMock:ExpectWho(40, 40, false, {{Name = "Nubone", Level = 40}})
 
         scan:Start()
         assert.equals(true, scan:IsDone())
@@ -340,14 +340,14 @@ describe("Scan", function()
         -- Leader went offline, result is empty
         libWhoMock:ExpectWho(41, 60, true, {})
         -- binary search continues
-        libWhoMock:ExpectWho(40, 60, true, {{Name = "Nub1", Level = 41}})
+        libWhoMock:ExpectWho(40, 60, true, {{Name = "Nubone", Level = 41}})
         -- scan down
         libWhoMock:ExpectWho(39, 39, true, {
-            {Name = "Nub1", Level = 39}})
+            {Name = "Nubone", Level = 39}})
         libWhoMock:ExpectWho(38, 39, true, {
-            {Name = "Nub1", Level = 39}, {Name = "Nub2", Level = 38}})
+            {Name = "Nubone", Level = 39}, {Name = "Nubtwo", Level = 38}})
         libWhoMock:ExpectWho(37, 39, false, {
-            {Name = "Nub1", Level = 39}, {Name = "Nub2", Level = 38}, {Name = "Nub3", Level = 37}})
+            {Name = "Nubone", Level = 39}, {Name = "Nubtwo", Level = 38}, {Name = "Nubthree", Level = 37}})
 
         scan:Start()
         assert.equals(true, scan:IsDone())

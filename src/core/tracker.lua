@@ -59,7 +59,7 @@ function TheClassicRaceTracker:RaceFinished()
     end
 end
 
-function TheClassicRaceTracker:OnNetPlayerInfoBatch(playerInfoBatch, _, shouldBroadcast)
+function TheClassicRaceTracker:OnNetPlayerInfoBatch(payload, _, shouldBroadcast)
     -- ignore data received when we've disabled networking
     if not self.DB.profile.options.networking then
         return
@@ -69,20 +69,12 @@ function TheClassicRaceTracker:OnNetPlayerInfoBatch(playerInfoBatch, _, shouldBr
         shouldBroadcast = false
     end
 
-    -- last entry is boolean isRebroadcast
-    local isRebroadcast = table.remove(playerInfoBatch, #playerInfoBatch)
+    local batchstr = payload[1]
+    local isRebroadcast = payload[2]
 
-    local normalizedPlayerInfoBatch = {}
-    for idx, playerInfo in ipairs(playerInfoBatch) do
-        normalizedPlayerInfoBatch[idx] = {
-            name = playerInfo[1],
-            level = playerInfo[2],
-            dingedAt = playerInfo[3],
-            classIndex = playerInfo[4],
-        }
-    end
+    local batch = TheClassicRace.Serializer.DeserializePlayerInfoBatch(batchstr)
 
-    self:ProcessPlayerInfoBatch(normalizedPlayerInfoBatch, shouldBroadcast, false)
+    self:ProcessPlayerInfoBatch(batch, shouldBroadcast, false)
 
     -- if it wasn't a rebroadcast then it was a /who scan, we can delay our own /who scan a bit
     if not isRebroadcast then
@@ -99,7 +91,7 @@ function TheClassicRaceTracker:OnSyncResult(playerInfoBatch, shouldBroadcast)
 end
 
 function TheClassicRaceTracker:ProcessPlayerInfoBatch(playerInfoBatch, shouldBroadcast, isRebroadcast)
-    local broadcastPayload = {}
+    local batch = {}
 
     -- the network message can be a list of playerInfo
     for _, playerInfo in ipairs(playerInfoBatch) do
@@ -107,18 +99,17 @@ function TheClassicRaceTracker:ProcessPlayerInfoBatch(playerInfoBatch, shouldBro
 
         -- ProcessPlayerInfo will return nil if the player wasn't relevant
         if playerInfo ~= nil then
-            table.insert(broadcastPayload, { playerInfo.name, playerInfo.level, playerInfo.dingedAt, playerInfo.classIndex })
+            table.insert(batch, playerInfo)
         end
     end
 
     -- broadcast
-    if shouldBroadcast and #broadcastPayload > 0 and self.DB.profile.options.networking then
-        -- last entry in payload is isRebroadcast
-        broadcastPayload[#broadcastPayload + 1] = isRebroadcast
+    if shouldBroadcast and #batch > 0 and self.DB.profile.options.networking then
+        local serializedBatch = TheClassicRace.Serializer.SerializePlayerInfoBatch(batch)
 
-        self.Network:SendObject(self.Config.Network.Events.PlayerInfoBatch, broadcastPayload, "CHANNEL")
+        self.Network:SendObject(self.Config.Network.Events.PlayerInfoBatch, { serializedBatch, isRebroadcast }, "CHANNEL")
         if IsInGuild() then
-            self.Network:SendObject(self.Config.Network.Events.PlayerInfoBatch, broadcastPayload, "GUILD")
+            self.Network:SendObject(self.Config.Network.Events.PlayerInfoBatch, { serializedBatch, isRebroadcast }, "GUILD")
         end
     end
 end
