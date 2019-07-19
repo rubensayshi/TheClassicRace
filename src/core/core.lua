@@ -75,6 +75,8 @@ function TheClassicRaceCore:MyClass()
 end
 
 function TheClassicRaceCore:ClassIndex(className)
+    className = string.upper(className)
+    className = string.gsub(className, " ", "")
     if self.Config.ClassIndexes[className] ~= nil then
         return self.Config.ClassIndexes[className]
     else
