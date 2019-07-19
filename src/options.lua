@@ -104,7 +104,7 @@ function TheClassicRace:RegisterOptions()
     local ldb = LibDataBroker:NewDataObject(TheClassicRace.Config.LDB, {
         type = "data source",
         text = "The Classic Race",
-        icon = "Interface\\Icons\\Ability_Hunter_SniperShot",
+        icon = "Interface\\ICONS\\Ability_Mount_JungleTiger",
         OnClick = function(_, ...) _self:MinimapIconClick(...) end
     })
     LibDBIcon:Register(TheClassicRace.Config.LDB, ldb, self.DB.profile.options.minimap)
