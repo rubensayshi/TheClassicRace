@@ -3,3 +3,5 @@ luacov*.out
 .release
 libs
 /env
+bw-release.sh
+
