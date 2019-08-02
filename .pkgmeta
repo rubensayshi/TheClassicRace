@@ -1,6 +1,7 @@
 externals:
     libs/LibStub: svn://svn.wowace.com/wow/libstub/mainline/trunk
     libs/CallbackHandler: svn://svn.wowace.com/wow/callbackhandler/mainline/trunk/CallbackHandler-1.0
+    libs/LibDataBroker: https://repos.wowace.com/wow/libdatabroker-1-1
     libs/AceAddon: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceAddon-3.0
     libs/AceConsole: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceConsole-3.0
     libs/AceConfig: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceConfig-3.0
