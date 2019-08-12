@@ -3,7 +3,9 @@
     <Include file="libs\AceAddon\AceAddon-3.0.xml"/>
     <Include file="libs\CallbackHandler\CallbackHandler-1.0.xml"/>
     <Script file="libs\LibDataBroker\LibDataBroker-1.1.lua"/>
+    <Include file="libs\LibDBIcon\lib.xml"/>
     <Script file="libs\AceSerializer\AceSerializer-3.0.lua"/>
+    <Include file="libs\AceComm\AceComm-3.0.xml"/>
     <Script file="libs\AceConsole\AceConsole-3.0.lua"/>
     <Script file="libs\AceDB\AceDB-3.0.lua"/>
     <Include file="libs\AceGUI\AceGUI-3.0.xml"/>
