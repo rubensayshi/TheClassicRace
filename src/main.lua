@@ -78,9 +78,7 @@ function TheClassicRace:OnEnable()
     self.scanner:InitTicker()
     self.classScanner:InitTicker(20)
 
-    if self.DB.profile.firsttime then
-        self.DB.profile.firsttime = false
-
+    if self.DB.profile.gui.display then
         self.StatusFrame:Show()
     end
 end

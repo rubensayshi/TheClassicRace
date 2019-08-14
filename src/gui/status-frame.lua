@@ -73,13 +73,18 @@ function TheClassicRaceStatusFrame:Show()
 
     local _self = self
 
+    -- toggle display state in DB
+    self.DB.profile.gui.display = true
+
     local frame = AceGUI:Create("Window")
+    -- bind status to DB, default width/height in defaultdb schema
+    frame:SetStatusTable(self.DB.profile.gui.statusFrameStatus)
     frame:SetTitle("The Classic Race")
-    frame:SetWidth(200)
-    frame:SetHeight(120)
+    frame.frame:SetFrameStrata("LOW")
     frame:SetLayout("Flow")
     frame:SetCallback("OnClose", function(widget)
-        TheClassicRace:DebugPrint("OnClose")
+        -- toggle display state in DB
+        _self.DB.profile.gui.display = false
 
         -- release self
         widget:Release()
@@ -91,12 +96,30 @@ function TheClassicRaceStatusFrame:Show()
             _self.tabicons = nil
         end
     end)
+    TheClassicRaceStatusFrame.FixResizeStatusUpdates(frame)
     frame:DoLayout()
 
     self.frame = frame
 
     self:RenderTabicons()
     self:Render()
+end
+
+--[[
+FixResizeStatusUpdates fixes a bug in AceGUI
+The OnMouseUp of the sizers don't update the status, so we add a new OnMouseUp that does
+--]]
+function TheClassicRaceStatusFrame.FixResizeStatusUpdates(frame)
+    for _, sizer in ipairs({ frame.sizer_se, frame.sizer_s, frame.sizer_e }) do
+        sizer:SetScript("OnMouseUp", function()
+            frame.frame:StopMovingOrSizing()
+            local status = frame.status or frame.localstatus
+            status.width = frame.frame:GetWidth()
+            status.height = frame.frame:GetHeight()
+            status.top = frame.frame:GetTop()
+            status.left = frame.frame:GetLeft()
+        end)
+    end
 end
 
 function TheClassicRaceStatusFrame:RenderTabicons()
@@ -106,6 +129,7 @@ function TheClassicRaceStatusFrame:RenderTabicons()
     end
 
     local tabicons = AceGUI:Create("SimpleGroup")
+    tabicons.frame:SetFrameStrata("LOW")
     tabicons:SetLayout("Flow")
     tabicons:SetWidth(20)
     tabicons:SetHeight(120)

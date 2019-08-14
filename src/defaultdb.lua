@@ -3,7 +3,6 @@ local TheClassicRace = _G.TheClassicRace
 ---@class TheClassicRaceDefaultDB
 local TheClassicRaceDefaultDB = {
     profile = {
-        firsttime = true,
         options = {
             minimap = {
                 hide = false,
@@ -14,6 +13,13 @@ local TheClassicRaceDefaultDB = {
             globalNotificationThreshold = 25,
             classNotifications = true,
             classNotificationThreshold = 10,
+        },
+        gui = {
+            display = true,
+            statusFrameStatus = {
+                width = 240,
+                height = 240,
+            },
         },
     },
     factionrealm = {
